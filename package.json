@@ -2,7 +2,12 @@
   "name": "webact",
   "version": "0.0.1",
   "description": "A framework for efficiently handling web components",
-  "main": "index.js",
+  "type": "module",
+  "module": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/enjikaka/webact"
+  },
   "scripts": {
     "test": "npm run test"
   },
