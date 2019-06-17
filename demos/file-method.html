@@ -1,0 +1,15 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>File method - Webact</title>
+</head>
+<body>
+  <div id="app"></div>
+  <script type="module" src="./my-app/my-app.js"></script>
+  <script type="module">
+    document.querySelector('#app').innerHTML = `
+      <my-app to-whom="world"></my-app>
+    `;
+  </script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Render method - Webact</title>
+</head>
+<body>
+  <div id="app"></div>
+  <script type="module">
+    import { Component, registerComponent } from 'https://unpkg.com/webact';
+
+    class MyApp extends Component {
+      static get observedAttributes() {
+        return ['to-whom'];
+      }
+
+      render({ toWhom }) {
+        return `<b>Hello ${toWhom}</b>`;
+      }
+    }
+
+    registerComponent(MyApp);
+
+    document.querySelector('#app').innerHTML = `
+      <my-app to-whom="world"></my-app>
+    `;
+  </script>
+</body>
+</html>
