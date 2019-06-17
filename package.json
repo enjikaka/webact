@@ -1,0 +1,20 @@
+{
+  "name": "webact",
+  "version": "0.0.1",
+  "description": "A framework for efficiently handling web components",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm run test"
+  },
+  "keywords": [
+    "web",
+    "web",
+    "component",
+    "react",
+    "vue",
+    "preact",
+    "es6"
+  ],
+  "author": "Jeremy Karlsson <karlsson@jeremy.se>",
+  "license": "MIT"
+}
