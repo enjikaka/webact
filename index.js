@@ -73,7 +73,9 @@ export class Component extends HTMLElement {
     if (componentPath) {
       this.componentPath = componentPath;
     } else {
-      console.warn('You did not send import.meta.url to the super method in your constructor. Thus CSS and HTML cannot be read for this component.', this);
+      console.warn('You did not send a path to the super method in your constructor. Thus CSS and HTML cannot be read for this component.', this);
+      console.warn('If shipping for modern browser, then call super with import.meta.url. If not, specify a path that is similar to import.meta.url yourself.');
+      console.warn('Should be the path to the component you are making.');
     }
   }
 
@@ -109,6 +111,12 @@ export class Component extends HTMLElement {
     return attributesToObject(this.attributes);
   }
 
+  /**
+   * Fetch sibling CSS if componentPath was sent in the super call.
+   * Execute the render method of the component and return the result as a node
+   *
+   * @returns {Promise<Node>}
+   */
   async _render() {
     const docFrag = new DocumentFragment();
 
@@ -135,6 +143,13 @@ export class Component extends HTMLElement {
     return docFrag.cloneNode(true);
   }
 
+  /**
+   * Fetch sibling CSS and HTML if componentPath was sent in the super call.
+   * If these has already been fetched (a component is initied more than one)
+   * then re-use the cached document fragment instead of fethcing again.
+   *
+   * @returns {Promise<Node>}
+   */
   async _renderHTMLFile() {
     const componentId = btoa(this.componentPath);
 
@@ -159,9 +174,9 @@ export class Component extends HTMLElement {
     return ComponentCache[componentId].cloneNode(true);
   }
 
-  // eslint-disable-next-line no-unused-vars
+  // Kinda like Reacts componentDidUpdate
   componentDidUpdate() { }
-
+  // Kinda like Reacts componentDidMount
   componentDidMount() { }
 
   async attributeChangedCallback() {
