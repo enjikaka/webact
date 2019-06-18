@@ -31,7 +31,9 @@ document.querySelector('#app').innerHTML = `
 
 ### Example with external HTML and CSS
 
-The following will load the HTML file in ShadoWDOM with the CSS and create a `<my-app>` component.
+Having HTML, CSS and JS in separate files if kind to both you and all the tools you use! Vue-style, and also the style I used Backbone with back in the days (read 2015).
+
+The following will load the HTML file in ShadowDOM with the CSS and create a `<my-app>` component.
 
 ```
 /components
