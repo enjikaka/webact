@@ -1,8 +1,10 @@
 # Webact
 
+Webact is a tiny library that helps you create web components in a manner similar to Vue and React. Without the need for tools heavy tools like Babel and Webpack that cripples your iterative workflow. ♻️
+
 ## Examples
 
-### With render method
+### With render method | Like with React class based component
 
 The following will take the result from the render method and put it in ShadomDOM and create a `<my-app>` component.
 
@@ -29,7 +31,7 @@ document.querySelector('#app').innerHTML = `
 ```
 
 
-### Example with external HTML and CSS
+### With HTML and CSS | Like Vue sigle file components
 
 Having HTML, CSS and JS in separate files if kind to both you and all the tools you use! Vue-style, and also the style I used Backbone with back in the days (read 2015).
 
@@ -64,6 +66,10 @@ document.querySelector('#app').innerHTML = `
   </div>
 `;
 ```
+
+### With methods | Like React function components
+
+_Coming soon..._ ⏳
 
 ### Interop with React and similar
 
