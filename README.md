@@ -111,6 +111,11 @@ export default function MyReactApp () {
 
 ## Usage
 
-Webact is currently running live in producation at:
+Webact is currently running live in producation at these sites.
 
-- https://saoir.se/
+### Saoirse
+
+URL: https://saoir.se/
+
+A small website to find music ids across music services.
+This site uses server site rendering with [Wext.js](https://github.com/Vufuzi/wext.js). And uses Webact for all client side component. (Which are pre-filled on the server using Wext.js).
