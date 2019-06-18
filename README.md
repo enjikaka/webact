@@ -62,3 +62,41 @@ document.querySelector('#app').innerHTML = `
   </div>
 `;
 ```
+
+### Interop with React and similar
+
+`export default` the result of the `registerComponent` method. This method returns the name of
+the custom element for this component. In the example below that would be `my-app`.
+
+my-app.js:
+```
+import { Component, registerComponent } from 'https://unpkg.com/webact';
+
+class MyApp extends Component {
+  static get observedAttributes() {
+    return ['to-whom'];
+  }
+
+  render({ toWhom }) {
+    return `<b>Hello ${toWhom}</b>`;
+  }
+}
+
+export default registerComponent(MyApp);
+```
+
+then in a React component import and use it like any other React component;
+
+```
+import * as React from 'react';
+
+import MyRealApp from './my-app.js';
+
+export default function MyReactApp () {
+  return (
+    <div class="ugly-jsx">
+      <MyRealApp to-whom="Jeremy" />
+    </div>
+  );
+}
+```
