@@ -57,7 +57,8 @@ export function stringToElements(string) {
  * @returns {string} the kebab-case version fo ClassName
  */
 export function registerComponent(classInstace) {
-  const kebabName = camelToKebabCase(classInstace.prototype.constructor.name);
+  const componentName = 'is' in classInstace ? classInstace.is : classInstace.prototype.constructor.name;
+  const kebabName = camelToKebabCase(componentName);
 
   customElements.define(kebabName, classInstace);
 
@@ -161,8 +162,8 @@ export class Component extends HTMLElement {
       const responseCSS = await fetchCSS;
       const responseHTML = await fetchHTML;
 
-      const css = await responseCSS.text();
-      const componentHTML = await responseHTML.text();
+      const css = responseCSS.ok && await responseCSS.text();
+      const componentHTML = responseHTML.ok && await responseHTML.text();
       const cssText = responseCSS.headers.get('content-type').indexOf('text/css') !== -1 ? css : '';
 
       stringToElements(`<style>${cssText}</style>${componentHTML}`)
