@@ -4,7 +4,7 @@
  * @param {string} str kebab-cased string
  * @returns {string} camelCased string
  */
-function kebabToCamelCase(str) {
+function kebabToCamelCase (str) {
   return str.replace(/(-)([a-z])/g, g => g[1].toUpperCase());
 }
 
@@ -14,7 +14,7 @@ function kebabToCamelCase(str) {
  * @param {string} str camelCased string
  * @returns {string} kebab-cased string
  */
-function camelToKebabCase(str) {
+function camelToKebabCase (str) {
   return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
 }
 
@@ -25,7 +25,7 @@ function camelToKebabCase(str) {
  * @param {NamedNodeMap} attributes Element.attributes
  * @returns {object} Object with camelCased keys
  */
-function attributesToObject(attributes) {
+function attributesToObject (attributes) {
   return attributes ?
     Array.from(attributes).reduce(
       (cur, { localName, value }) => ({
@@ -43,7 +43,7 @@ function attributesToObject(attributes) {
  * @param {string} string HTML in string form
  * @returns {Node[]} Nodes parsed from the HTML string
  */
-export function stringToElements(string) {
+export function stringToElements (string) {
   const fragment = document.createRange().createContextualFragment(string);
 
   return [...fragment.children];
@@ -56,7 +56,8 @@ export function stringToElements(string) {
  * @param {Function} classInstace Instance of a custom element to register
  * @returns {string} the kebab-case version fo ClassName
  */
-export function registerComponent(classInstace) {
+export function registerComponent (classInstace) {
+  // @ts-ignore
   const componentName = 'is' in classInstace ? classInstace.is : classInstace.prototype.constructor.name;
   const kebabName = camelToKebabCase(componentName);
 
@@ -66,9 +67,10 @@ export function registerComponent(classInstace) {
 }
 
 const ComponentCache = {};
+const CSSCache = {};
 
 export class Component extends HTMLElement {
-  constructor(componentPath) {
+  constructor (componentPath) {
     super();
 
     if (componentPath) {
@@ -80,11 +82,11 @@ export class Component extends HTMLElement {
     }
   }
 
-  $(q) {
+  $ (q) {
     return this._sDOM.querySelector(q);
   }
 
-  set state(updates) {
+  set state (updates) {
     this._state = Object.freeze({
       ...(this._state || {}),
       ...updates
@@ -96,19 +98,19 @@ export class Component extends HTMLElement {
     }
   }
 
-  get state() {
+  get state () {
     return this._state;
   }
 
-  get cssPath() {
+  get cssPath () {
     return this.componentPath && this.componentPath.replace(/\.js/gi, '.css');
   }
 
-  get htmlPath() {
+  get htmlPath () {
     return this.componentPath.replace(/\.js/gi, '.html');
   }
 
-  get props() {
+  get props () {
     return attributesToObject(this.attributes);
   }
 
@@ -118,16 +120,18 @@ export class Component extends HTMLElement {
    *
    * @returns {Promise<Node>}
    */
-  async _render() {
+  async _render () {
     const docFrag = new DocumentFragment();
 
-    let cssText = '';
+    let cssText = CSSCache[this.cssPath];
 
-    if (this.cssPath) {
+    if (!cssText && this.cssPath) {
       const response = await fetch(this.cssPath);
 
       if (response.ok) {
         const css = await response.text();
+
+        CSSCache[this.cssPath] = css;
 
         if (response.headers.get('content-type').indexOf('text/css') !== -1) {
           cssText = `<style>${css}</style>`;
@@ -151,36 +155,49 @@ export class Component extends HTMLElement {
    *
    * @returns {Promise<Node>}
    */
-  async _renderHTMLFile() {
+  async _renderHTMLFile () {
     const componentId = btoa(this.componentPath);
 
+    const okToText = (response, mime) => new Promise((resolve, reject) => {
+      if (mime && response.headers.get('content-type').indexOf(mime) === -1) {
+        reject(new TypeError('Wrong mime'));
+      }
+
+      if (response.ok) {
+        return resolve(response.text());
+      }
+    });
+
     if (!ComponentCache[componentId]) {
-      const docFrag = new DocumentFragment();
-      const fetchCSS = fetch(this.cssPath);
-      const fetchHTML = fetch(this.htmlPath);
+      ComponentCache[componentId] = new Promise(resolve => {
+        Promise.all([fetch(this.cssPath), fetch(this.htmlPath)]).then(([responseCSS, responseHTML]) => {
+          const docFrag = new DocumentFragment();
 
-      const responseCSS = await fetchCSS;
-      const responseHTML = await fetchHTML;
+          Promise.all([
+            okToText(responseCSS, 'text/css'),
+            okToText(responseHTML)
+          ]).then(([css, html]) => {
+            stringToElements(`<style>${css}</style>${html}`)
+              .forEach(c => docFrag.appendChild(c));
 
-      const css = responseCSS.ok && await responseCSS.text();
-      const componentHTML = responseHTML.ok && await responseHTML.text();
-      const cssText = responseCSS.headers.get('content-type').indexOf('text/css') !== -1 ? css : '';
-
-      stringToElements(`<style>${cssText}</style>${componentHTML}`)
-        .forEach(c => docFrag.appendChild(c));
-
-      ComponentCache[componentId] = docFrag;
+            resolve(docFrag);
+          });
+        });
+      });
     }
 
-    return ComponentCache[componentId].cloneNode(true);
+    const docFrag = await ComponentCache[componentId];
+
+    return docFrag.cloneNode(true);
   }
 
   // Kinda like Reacts componentDidUpdate
-  componentDidUpdate() { }
-  // Kinda like Reacts componentDidMount
-  componentDidMount() { }
+  componentDidUpdate () { }
 
-  async attributeChangedCallback() {
+  // Kinda like Reacts componentDidMount
+  componentDidMount () { }
+
+  async attributeChangedCallback () {
     let content;
 
     // @ts-ignore
@@ -198,7 +215,7 @@ export class Component extends HTMLElement {
     }
   }
 
-  async connectedCallback() {
+  async connectedCallback () {
     this._sDOM = this.attachShadow({ mode: 'closed' });
 
     let content;
