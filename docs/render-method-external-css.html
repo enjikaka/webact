@@ -8,7 +8,11 @@
   <script type="module">
     import { Component, registerComponent } from 'https://unpkg.com/webact';
 
-    class RenderMethod extends Component {
+    class RenderMethodExternalCss extends Component {
+      constructor () {
+        super(import.meta.url);
+      }
+
       static get observedAttributes() {
         return ['to-whom'];
       }
@@ -18,10 +22,10 @@
       }
     }
 
-    registerComponent(RenderMethod);
+    registerComponent(RenderMethodExternalCss);
 
     document.querySelector('#app').innerHTML = `
-      <render-method to-whom="world"></render-method>
+      <render-method-external-css to-whom="world"></render-method-external-css>
     `;
   </script>
 </body>

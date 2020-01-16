@@ -1,3 +1,5 @@
+import './adoptedStyleSheets.js';
+
 /**
  * Converts a snake-case string to camelCase
  *
@@ -32,7 +34,7 @@ function attributesToObject (attributes) {
         ...cur,
         [kebabToCamelCase(localName)]: value
       }),
-      {},
+      {}
     ) :
     {};
 }
@@ -126,26 +128,43 @@ export class Component extends HTMLElement {
     let cssText = CSSCache[this.cssPath];
 
     if (!cssText && this.cssPath) {
-      const response = await fetch(this.cssPath);
+      const sheet = await this.fetchCSSAsStyleSheet();
 
-      if (response.ok) {
-        const css = await response.text();
-
-        CSSCache[this.cssPath] = css;
-
-        if (response.headers.get('content-type').indexOf('text/css') !== -1) {
-          cssText = `<style>${css}</style>`;
-        }
-      }
+      this._sDOM.adoptedStyleSheets = [sheet];
     }
 
     // @ts-ignore
     const htmlText = this.render(this.props);
 
-    stringToElements(`${cssText}${htmlText}`)
-      .forEach(c => docFrag.appendChild(c));
+    stringToElements(htmlText).forEach(c => docFrag.appendChild(c));
 
     return docFrag.cloneNode(true);
+  }
+
+  async fetchHTMLAsDocFrag () {
+    const docFrag = new DocumentFragment();
+    const response = await fetch(this.htmlPath);
+
+    if (response.ok) {
+      const text = await response.text();
+
+      stringToElements(text).forEach(c => docFrag.appendChild(c));
+    }
+
+    return docFrag;
+  }
+
+  async fetchCSSAsStyleSheet () {
+    const sheet = new CSSStyleSheet();
+    const response = await fetch(this.cssPath);
+
+    if (response.ok && response.headers.get('content-type').indexOf('text/css') !== -1) {
+      const text = await response.text();
+
+      await sheet.replace(text);
+    }
+
+    return sheet;
   }
 
   /**
@@ -158,35 +177,16 @@ export class Component extends HTMLElement {
   async _renderHTMLFile () {
     const componentId = btoa(this.componentPath);
 
-    const okToText = (response, mime) => new Promise((resolve, reject) => {
-      if (mime && response.headers.get('content-type').indexOf(mime) === -1) {
-        reject(new TypeError('Wrong mime'));
-      }
-
-      if (response.ok) {
-        return resolve(response.text());
-      }
-    });
-
     if (!ComponentCache[componentId]) {
-      ComponentCache[componentId] = new Promise(resolve => {
-        Promise.all([fetch(this.cssPath), fetch(this.htmlPath)]).then(([responseCSS, responseHTML]) => {
-          const docFrag = new DocumentFragment();
-
-          Promise.all([
-            okToText(responseCSS, 'text/css'),
-            okToText(responseHTML)
-          ]).then(([css, html]) => {
-            stringToElements(`<style>${css}</style>${html}`)
-              .forEach(c => docFrag.appendChild(c));
-
-            resolve(docFrag);
-          });
-        });
-      });
+      ComponentCache[componentId] = Promise.all([
+        this.fetchHTMLAsDocFrag(),
+        this.fetchCSSAsStyleSheet()
+      ]);
     }
 
-    const docFrag = await ComponentCache[componentId];
+    const [docFrag, sheet] = await ComponentCache[componentId];
+
+    this._sDOM.adoptedStyleSheets = [sheet];
 
     return docFrag.cloneNode(true);
   }
