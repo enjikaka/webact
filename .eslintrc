@@ -1,0 +1,6 @@
+{
+  "extends": "tidal/esnext",
+  "env": {
+    "browser": true
+  }
+}

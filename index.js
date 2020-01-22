@@ -125,11 +125,12 @@ export class Component extends HTMLElement {
   async _render () {
     const docFrag = new DocumentFragment();
 
-    let cssText = CSSCache[this.cssPath];
+    const cssText = CSSCache[this.cssPath];
 
     if (!cssText && this.cssPath) {
       const sheet = await this.fetchCSSAsStyleSheet();
 
+      // @ts-ignore
       this._sDOM.adoptedStyleSheets = [sheet];
     }
 
@@ -161,6 +162,7 @@ export class Component extends HTMLElement {
     if (response.ok && response.headers.get('content-type').indexOf('text/css') !== -1) {
       const text = await response.text();
 
+      // @ts-ignore
       await sheet.replace(text);
     }
 
@@ -186,6 +188,7 @@ export class Component extends HTMLElement {
 
     const [docFrag, sheet] = await ComponentCache[componentId];
 
+    // @ts-ignore
     this._sDOM.adoptedStyleSheets = [sheet];
 
     return docFrag.cloneNode(true);
