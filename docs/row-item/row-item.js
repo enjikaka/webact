@@ -1,4 +1,4 @@
-import { Component, registerComponent } from 'https://unpkg.com/webact';
+import { Component, registerComponent } from '/index.js';
 
 class RowItem extends Component {
   constructor () {
