@@ -191,33 +191,8 @@ export class Component extends HTMLElement {
     return docFrag.cloneNode(true);
   }
 
-  // Kinda like Reacts componentDidUpdate
-  componentDidUpdate () { }
-
   // Kinda like Reacts componentDidMount
   componentDidMount () { }
-
-  async attributeChangedCallback () {
-    if (!this._sDOM) {
-      return;
-    }
-
-    let content;
-
-    // @ts-ignore
-    if (this.render) {
-      content = await this._render();
-    } else {
-      content = await this._renderHTMLFile();
-    }
-
-    this._sDOM.innerHTML = null;
-    this._sDOM.appendChild(content);
-
-    if (this.componentDidUpdate) {
-      this.componentDidUpdate();
-    }
-  }
 
   async connectedCallback () {
     this._sDOM = this.attachShadow({ mode: 'closed' });
