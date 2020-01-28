@@ -198,6 +198,10 @@ export class Component extends HTMLElement {
   componentDidMount () { }
 
   async attributeChangedCallback () {
+    if (!this._sDOM) {
+      return;
+    }
+
     let content;
 
     // @ts-ignore
