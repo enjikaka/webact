@@ -9,7 +9,7 @@
     "url": "https://github.com/enjikaka/webact"
   },
   "scripts": {
-    "test": "http-server ./docs -p 1444"
+    "test": "http-server ./ -p 1444 && open http://localhost:1444/docs"
   },
   "keywords": [
     "web",
