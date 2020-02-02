@@ -93,7 +93,7 @@ export class Component extends HTMLElement {
   }
 
   get htmlPath () {
-    return this.componentPath.replace(/\.js/gi, '.html');
+    return this.componentPath && this.componentPath.replace(/\.js/gi, '.html');
   }
 
   get props () {
