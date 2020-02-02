@@ -189,8 +189,10 @@ export class Component extends HTMLElement {
     // @ts-ignore
     if (this.render) {
       content = await this._render();
-    } else {
+    } else if (this.componentPath) {
       content = await this._renderHTMLFile();
+    } else {
+      console.error('No render function or component path found for static html/css.');
     }
 
     this._sDOM.innerHTML = null;
