@@ -9,7 +9,21 @@
     "url": "https://github.com/enjikaka/webact"
   },
   "scripts": {
-    "test": "http-server ./ -p 1444 && open http://localhost:1444/docs"
+    "test": "http-server ./__tests__ -p 1444 && open http://localhost:1444/docs",
+    "build": "npx @pika/pack"
+  },
+  "@pika/pack": {
+    "pipeline": [
+      [
+        "@pika/plugin-standard-pkg"
+      ],
+      [
+        "@pika/plugin-build-web"
+      ],
+      [
+        "@pika/plugin-bundle-web"
+      ]
+    ]
   },
   "keywords": [
     "web",
@@ -23,8 +37,15 @@
   "author": "Jeremy Karlsson <karlsson@jeremy.se>",
   "license": "MIT",
   "devDependencies": {
+    "@pika/plugin-build-types": "^0.8.1",
+    "@pika/plugin-build-web": "^0.8.1",
+    "@pika/plugin-bundle-web": "^0.8.1",
+    "@pika/plugin-standard-pkg": "^0.8.1",
     "eslint": "^6.8.0",
     "eslint-config-tidal": "^1.2.0",
     "http-server": "^0.12.1"
+  },
+  "dependencies": {
+    "construct-style-sheets-polyfill": "^2.3.4"
   }
 }
