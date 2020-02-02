@@ -84,20 +84,6 @@ class Component extends HTMLElement {
     return this._sDOM.querySelector(q);
   }
 
-  set state(updates) {
-    this._state = Object.freeze({ ...(this._state || {}),
-      ...updates
-    }); // @ts-ignore
-
-    if (this.render) {
-      this._render();
-    }
-  }
-
-  get state() {
-    return this._state;
-  }
-
   get cssPath() {
     return this.componentPath && this.componentPath.replace(/\.js/gi, '.css');
   }
@@ -177,31 +163,10 @@ class Component extends HTMLElement {
 
     this._sDOM.adoptedStyleSheets = [sheet];
     return docFrag.cloneNode(true);
-  } // Kinda like Reacts componentDidUpdate
-
-
-  componentDidUpdate() {} // Kinda like Reacts componentDidMount
+  } // Kinda like Reacts componentDidMount
 
 
   componentDidMount() {}
-
-  async attributeChangedCallback() {
-    let content; // @ts-ignore
-
-    if (this.render) {
-      content = await this._render();
-    } else {
-      content = await this._renderHTMLFile();
-    }
-
-    this._sDOM.innerHTML = null;
-
-    this._sDOM.appendChild(content);
-
-    if (this.componentDidUpdate) {
-      this.componentDidUpdate();
-    }
-  }
 
   async connectedCallback() {
     this._sDOM = this.attachShadow({
