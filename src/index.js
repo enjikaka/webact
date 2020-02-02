@@ -88,22 +88,6 @@ export class Component extends HTMLElement {
     return this._sDOM.querySelector(q);
   }
 
-  set state (updates) {
-    this._state = Object.freeze({
-      ...(this._state || {}),
-      ...updates
-    });
-
-    // @ts-ignore
-    if (this.render) {
-      this._render();
-    }
-  }
-
-  get state () {
-    return this._state;
-  }
-
   get cssPath () {
     return this.componentPath && this.componentPath.replace(/\.js/gi, '.css');
   }
