@@ -6,7 +6,8 @@
 <body>
   <div id="app"></div>
   <script type="module">
-    import { Component, registerComponent } from '/index.js';
+    import 'https://unpkg.com/construct-style-sheets-polyfill@2.3.4/dist/adoptedStyleSheets.js';
+    import { Component, registerComponent } from '/src/webact.js';
 
     class RenderMethodExternalCss extends Component {
       constructor () {

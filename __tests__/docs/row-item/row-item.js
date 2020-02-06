@@ -1,4 +1,4 @@
-import { Component, registerComponent } from '/index.js';
+import { Component, registerComponent } from '/pkg/dist-web/index.bundled.js';
 
 class RowItem extends Component {
   constructor () {

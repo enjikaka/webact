@@ -9,7 +9,7 @@
     "url": "https://github.com/enjikaka/webact"
   },
   "scripts": {
-    "test": "http-server ./__tests__ -p 1444 && open http://localhost:1444/docs",
+    "test": "http-server ./ -p 1444 && open http://localhost:1444/__tests__/docs",
     "build": "npx @pika/pack"
   },
   "@pika/pack": {
