@@ -74,7 +74,9 @@ export function registerFunctionalComponent (functionalComponent) {
       this._html = undefined;
       this._css = undefined;
       this._postRender = undefined;
+    }
 
+    async connectedCallback () {
       const customThis = {
         html: strings => {
           this._html = html(strings);
@@ -93,11 +95,11 @@ export function registerFunctionalComponent (functionalComponent) {
         $$: selector => this._sDOM.querySelector(selector)
       };
 
-      this._rendering = functionalComponent.apply(customThis);
-    }
+      this._rendering = functionalComponent.apply(customThis, [attributesToObject(this.attributes)]);
 
-    async connectedCallback () {
-      this._sDOM = this.attachShadow({ mode: 'closed' });
+      this._sDOM = this.attachShadow({
+        mode: 'closed'
+      });
 
       if (this._rendering instanceof Promise) {
         await this._rendering;
