@@ -73,6 +73,7 @@ export function registerFunctionalComponent (functionalComponent) {
 
       this._html = undefined;
       this._css = undefined;
+      this._postRender = undefined;
 
       const customThis = {
         html: strings => {
@@ -84,7 +85,12 @@ export function registerFunctionalComponent (functionalComponent) {
           this._css = css(strings);
 
           return this._css;
-        }
+        },
+        postRender: method => {
+          this._postRender = method;
+        },
+        $: selector => this._sDOM.querySelector(selector),
+        $$: selector => this._sDOM.querySelector(selector)
       };
 
       this._rendering = functionalComponent.apply(customThis);
@@ -112,6 +118,10 @@ export function registerFunctionalComponent (functionalComponent) {
         });
       } else {
         console.warn('Missing HTML. Will render without it.');
+      }
+
+      if (this._postRender instanceof Function) {
+        this._postRender();
       }
     }
   }
