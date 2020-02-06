@@ -115,13 +115,19 @@ export function registerFunctionalComponent (functionalComponent) {
       if (this._html) {
         requestAnimationFrame(() => {
           this._sDOM.appendChild(this._html);
+
+          requestAnimationFrame(() => {
+            if (this._postRender instanceof Function) {
+              this._postRender();
+            }
+          });
         });
       } else {
-        console.warn('Missing HTML. Will render without it.');
-      }
+        if (this._postRender instanceof Function) {
+          this._postRender();
+        }
 
-      if (this._postRender instanceof Function) {
-        this._postRender();
+        console.warn('Missing HTML. Will render without it.');
       }
     }
   }
