@@ -91,8 +91,8 @@ export function registerFunctionalComponent (functionalComponent) {
         postRender: method => {
           this._postRender = method;
         },
-        $: selector => this._sDOM.querySelector(selector),
-        $$: selector => this._sDOM.querySelector(selector)
+        $: selector => selector ? this._sDOM.querySelector(selector) : this,
+        $$: selector => selector ? this._sDOM.querySelectorAll(selector) : this
       };
 
       this._rendering = functionalComponent.apply(customThis, [attributesToObject(this.attributes)]);
