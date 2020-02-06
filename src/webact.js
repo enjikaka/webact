@@ -93,11 +93,26 @@ export function registerFunctionalComponent (functionalComponent) {
     async connectedCallback () {
       this._sDOM = this.attachShadow({ mode: 'closed' });
 
-      await this._rendering;
+      if (this._rendering instanceof Promise) {
+        await this._rendering;
+      }
 
-      // @ts-ignore
-      this._sDOM.adoptedStyleSheets = [this._css];
-      this._sDOM.appendChild(this._html);
+      if (this._css) {
+        requestAnimationFrame(() => {
+          // @ts-ignore
+          this._sDOM.adoptedStyleSheets = [this._css];
+        });
+      } else {
+        console.warn('Missing CSS. Will render without it.');
+      }
+
+      if (this._html) {
+        requestAnimationFrame(() => {
+          this._sDOM.appendChild(this._html);
+        });
+      } else {
+        console.warn('Missing HTML. Will render without it.');
+      }
     }
   }
 
