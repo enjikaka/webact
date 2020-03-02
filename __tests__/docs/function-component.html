@@ -8,26 +8,20 @@
 <body>
   <nice-button>I am a nice button</nice-button>
   <nicer-button>I am a niceeeer button</nicer-button>
-  <!-- Can import many times, only load once -->
+  <derp-button></derp-button>
+  <script type="module" src="./derp-button/derp-button.js"></script>
   <script type="module">
   import 'https://unpkg.com/construct-style-sheets-polyfill@2.3.4/dist/adoptedStyleSheets.js';
   import { registerFunctionalComponent } from '/src/webact.js';
 
   async function NiceButton () {
-    const { html, css } = this;
+    const { useHTML, useCSS } = this;
 
-    const responseHtml = await fetch('nice-button.html');
-    const htmlText = await responseHtml.text();
-
-    html(htmlText);
-
-    const responseCss = await fetch('nice-button.css');
-    const cssText = await responseCss.text();
-
-    css(cssText);
+    await useHTML('./nice-button.html');
+    await useCSS('./nice-button.css');
   }
 
-  registerFunctionalComponent(NiceButton);
+  registerFunctionalComponent(NiceButton, import.meta.url);
 
   function NicerButton() {
       const { html, css } = this;
@@ -39,14 +33,14 @@
       `;
 
       css`
-      button {
-        background-color: purple;
-        color: white;
-        padding: 1rem;
-        border: 1px solid green;
-        border-radius: 4px;
-      }
-    `;
+        button {
+          background-color: purple;
+          color: white;
+          padding: 1rem;
+          border: 1px solid green;
+          border-radius: 4px;
+        }
+      `;
     }
 
   registerFunctionalComponent(NicerButton);

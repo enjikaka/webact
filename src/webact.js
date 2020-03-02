@@ -64,7 +64,11 @@ export function html (strings) {
   return stringToElements(text);
 }
 
-export function registerFunctionalComponent (functionalComponent) {
+export function registerFunctionalComponent (functionalComponent, metaUrl) {
+  if (!metaUrl) {
+    console.warn('No metaURL, specified. useHTML and useCSS will be useLess...');
+  }
+
   const kebabName = camelToKebabCase(functionalComponent.name);
 
   class WebComp extends HTMLElement {
@@ -74,6 +78,15 @@ export function registerFunctionalComponent (functionalComponent) {
       this._html = undefined;
       this._css = undefined;
       this._postRender = undefined;
+      this._componentPath = metaUrl;
+    }
+
+    get cssPath () {
+      return this._componentPath && this._componentPath.replace(/\.(html|js)/gi, '.css');
+    }
+
+    get htmlPath () {
+      return this._componentPath && this._componentPath.replace(/\.(css|js)/gi, '.html');
     }
 
     async connectedCallback () {
@@ -87,6 +100,18 @@ export function registerFunctionalComponent (functionalComponent) {
           this._css = css(strings);
 
           return this._css;
+        },
+        useHTML: async () => {
+          const response = await fetch(this.htmlPath);
+          const text = await response.text();
+
+          return customThis.html([text]);
+        },
+        useCSS: async () => {
+          const response = await fetch(this.cssPath);
+          const text = await response.text();
+
+          return customThis.css([text]);
         },
         postRender: method => {
           this._postRender = method;
@@ -197,8 +222,6 @@ export class Component extends HTMLElement {
 
     if (!cssText && this.cssPath) {
       const sheet = await this.fetchCSSAsStyleSheet();
-
-      console.log(sheet);
 
       // @ts-ignore
       this._sDOM.adoptedStyleSheets = [sheet];
