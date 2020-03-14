@@ -1,4 +1,4 @@
-import { Component, registerComponent } from '/pkg/dist-web/index.bundled.js';
+import { Component, registerComponent } from '/webact.js';
 
 class MyApp extends Component {
   constructor () {

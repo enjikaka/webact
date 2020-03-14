@@ -1,4 +1,4 @@
-import { registerFunctionalComponent } from '/pkg/dist-web/index.bundled.js';
+import { registerFunctionalComponent } from '/webact.js';
 
 function DerpButton () {
   const { useHTML, useCSS } = this;
