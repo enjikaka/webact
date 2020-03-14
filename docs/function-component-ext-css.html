@@ -1,0 +1,49 @@
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Function component with external CSS - Webact</title>
+</head>
+
+<body>
+  <h1>Function component with external CSS</h1>
+  <pre>
+  <code>
+  import { registerFunctionalComponent } from '/webact.js';
+
+  async function NiceButton() {
+    const { useHTML, useCSS } = this;
+
+    await useCSS('./nice-button.css');
+
+    html`
+      &lt;button&gt;
+        &lt;slot&gt;&lt;/slot&gt;
+      &lt;/button&gt;
+    `;
+  }
+
+  registerFunctionalComponent(NiceButton, import.meta.url);
+  </code>
+  </pre>
+  <nice-button>I am a nice button</nice-button>
+  <script type="module">
+    import { registerFunctionalComponent } from '/webact.js';
+
+    async function NiceButton() {
+      const { html, useCSS } = this;
+
+      await useCSS('./nice-button.css');
+
+      html`
+        <button>
+          <slot></slot>
+        </button>
+      `
+    }
+
+    registerFunctionalComponent(NiceButton, import.meta.url);
+  </script>
+</body>
+
+</html>
