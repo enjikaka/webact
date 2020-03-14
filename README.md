@@ -138,7 +138,7 @@ function FancyButton() {
   const { html, css, postRender, $ } = this;
 
   html`
-    <button type="button>
+    <button type="button">
       <slot></slot>
     </button>
   `;
