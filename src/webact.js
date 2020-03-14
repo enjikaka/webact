@@ -48,8 +48,16 @@ export function stringToElements (string) {
   return document.createRange().createContextualFragment(string);
 }
 
-export function css (strings) {
-  const text = Array.isArray(strings) ? strings.join('') : strings;
+/**
+ * @export
+ * @param {string[] | string} strings
+ * @param {any[]} rest
+ * @returns
+ */
+export function css (strings, ...rest) {
+  const text = Array.isArray(strings) ? strings.reduce((acc, curr, i) => {
+    return acc + (rest[i] ? curr + rest[i] : curr);
+  }, '') : strings;
   const sheet = new CSSStyleSheet();
 
   // @ts-ignore
@@ -58,12 +66,26 @@ export function css (strings) {
   return sheet;
 }
 
-export function html (strings) {
-  const text = Array.isArray(strings) ? strings.join('') : strings;
+/**
+ * @export
+ * @param {string[] | string} strings
+ * @param {any[]} rest
+ * @returns
+ */
+export function html (strings, ...rest) {
+  const text = Array.isArray(strings) ? strings.reduce((acc, curr, i) => {
+    return acc + (rest[i] ? curr + rest[i] : curr);
+  }, '') : strings;
 
   return stringToElements(text);
 }
 
+/**
+ * @export
+ * @param {Function} functionalComponent
+ * @param {?string} metaUrl
+ * @returns
+ */
 export function registerFunctionalComponent (functionalComponent, metaUrl) {
   if (!metaUrl) {
     console.warn('No metaURL, specified. useHTML and useCSS will be useLess...');
@@ -101,14 +123,26 @@ export function registerFunctionalComponent (functionalComponent, metaUrl) {
 
           return this._css;
         },
-        useHTML: async () => {
-          const response = await fetch(this.htmlPath);
+        useHTML: async path => {
+          const htmlPath = path || this.htmlPath;
+
+          if (!htmlPath) {
+            return;
+          }
+
+          const response = await fetch(htmlPath);
           const text = await response.text();
 
           return customThis.html([text]);
         },
-        useCSS: async () => {
-          const response = await fetch(this.cssPath);
+        useCSS: async path => {
+          const cssPath = path || this.htmlPath;
+
+          if (!cssPath) {
+            return;
+          }
+
+          const response = await fetch(cssPath);
           const text = await response.text();
 
           return customThis.css([text]);
@@ -116,8 +150,18 @@ export function registerFunctionalComponent (functionalComponent, metaUrl) {
         postRender: method => {
           this._postRender = method;
         },
-        $: selector => selector ? this._sDOM.querySelector(selector) : this,
-        $$: selector => selector ? this._sDOM.querySelectorAll(selector) : this
+        $: selector => {
+          if (selector === undefined) {
+            return this;
+          }
+
+          if (selector === ':host') {
+            return this._sDOM;
+          }
+
+          return this._sDOM.querySelector(selector);
+        },
+        $$: selector => this._sDOM.querySelectorAll(selector)
       };
 
       this._rendering = functionalComponent.apply(customThis, [attributesToObject(this.attributes)]);
@@ -166,7 +210,7 @@ export function registerFunctionalComponent (functionalComponent, metaUrl) {
  * Takes a class for an extended Component/HTMLElement
  * and registes it basedof the ClassName as class-name.
  *
- * @param {Function} classInstace Instance of a custom element to register
+ * @param {CustomElementConstructor} classInstace Instance of a custom element to register
  * @returns {string} the kebab-case version fo ClassName
  */
 export function registerComponent (classInstace) {
