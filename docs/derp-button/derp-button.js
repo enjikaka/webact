@@ -1,4 +1,4 @@
-import { registerFunctionalComponent } from '/webact.js';
+import { registerFunctionalComponent } from '../webact.js';
 
 function DerpButton () {
   const { useHTML, useCSS } = this;
