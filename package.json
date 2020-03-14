@@ -11,7 +11,7 @@
   "scripts": {
     "test": "http-server ./ -p 1444 && open http://localhost:1444/__tests__/docs",
     "build": "npx @pika/pack",
-    "release": "npm version patch && npm run build && cd pkg && npm publish"
+    "release": "npm version patch && npm run build && cd pkg && npm publish && cd ../ && git push --follow-tags"
   },
   "@pika/pack": {
     "pipeline": [
