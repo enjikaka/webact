@@ -176,7 +176,7 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
  * @param {{ metaUrl: ?string, observedAttributes: string[] }} options
  * @returns {string} Custom element tag name.
  */
-export default function registerFunctionComponent (functionComponent, { metaUrl, observedAttributes }) {
+export default function registerFunctionComponent (functionComponent, { metaUrl, observedAttributes } = { metaUrl: undefined, observedAttributes: [] }) {
   const kebabName = camelToKebabCase(functionComponent.name);
 
   customElements.define(
