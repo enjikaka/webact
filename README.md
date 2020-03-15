@@ -69,10 +69,10 @@ document.querySelector('#app').innerHTML = `
 
 ### With methods | Like React function components
 
-You can create components via functions as well. This is done via the `registerFunctionalComponent` helper method exposed.
+You can create components via functions as well. This is done via the `registerFunctionComponent` helper method exposed. If observedAttributes is specified the component will re-render when one of those attributes changes.
 
 ```js
-registerFunctionalComponent(callback: Function, metaUrl: ?string)
+registerFunctionComponent(callback: Function, { metaUrl: ?string, observedAttributes: ?string[] })
 ```
 
 #### Hooks
@@ -83,7 +83,15 @@ Some "hooks" like methods are exposed.
 postRender(callback: Function)
 
 /*
-Takes a function as input. This function is called on `connectedCallback` in the custom element lifecycle. Equivalent to the `useEffect` hook and componentDidMount lifecycle callback in React.
+Takes a function as input. This function is called on `connectedCallback` in the custom element lifecycle and on `attributeChangedCallback`. Equivalent to the `useEffect` hook and componentDidMount lifecycle callback in React.
+*/
+```
+
+```ts
+propsChange(callback: Function)
+
+/*
+Takes a function as input. This function is called on `attributeChangedCallback` in the custom element lifecycle. First parameter is an object with all the attributes of the custom elements. Not that the entire ShadowDOM is trashed on `attributeChangedCallback`, so do not attempt any DOM manipulation here. This is only for reacting to attribute changes for other purposes.
 */
 ```
 
@@ -97,7 +105,7 @@ Tagged template litteral. Call this with your markup and it will be injected int
 ```ts
 useHTML(path: ?string)
 /*
-If there is a path specified, it will be fetched and used for the markup in the shadow DOM. If no path is specified and the second argument to registerFunctionalComponent is the path to the JS file provided you follow the recommended component structure, a file with the same name as the js file in the same folder will be fetches but with the .html extention for use as markup in the shadow DOM.
+If there is a path specified, it will be fetched and used for the markup in the shadow DOM. If no path is specified and the second argument to registerFunctionComponent is the path to the JS file provided you follow the recommended component structure, a file with the same name as the js file in the same folder will be fetches but with the .html extention for use as markup in the shadow DOM.
 */
 ```
 
@@ -111,7 +119,7 @@ Tagged template litteral. Call this with your styles and it will be injected as 
 ```ts
 useCSS(path: ?string)
 /*
-If there is a path specified, it will be fetched and used for the Constructable Stylsheet for the shadow DOM. If no path is specified and the second argument to registerFunctionalComponent is the path to the JS file provided you follow the recommended component structure, a file with the same name as the js file in the same folder will be fetches but with the .css extention for use as styles in the shadow DOM.
+If there is a path specified, it will be fetched and used for the Constructable Stylsheet for the shadow DOM. If no path is specified and the second argument to registerFunctionComponent is the path to the JS file provided you follow the recommended component structure, a file with the same name as the js file in the same folder will be fetches but with the .css extention for use as styles in the shadow DOM.
 */
 ```
 
@@ -132,7 +140,7 @@ jQuery like helper method to querying stuff in the shadow dom. An empty string o
 #### Example
 
 ```js
-import { registerFunctionalComponent } from 'https://unpkg.com/webact';
+import { registerFunctionComponent } from 'https://unpkg.com/webact';
 
 function FancyButton() {
   const { html, css, postRender, $ } = this;
@@ -159,7 +167,7 @@ function FancyButton() {
   });
 }
 
-export default registerFunctionalComponent(FancyButton);
+export default registerFunctionComponent(FancyButton);
 ```
 
 ### Interop with React and similar

@@ -1,12 +1,10 @@
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
-  <title>Function component - Webact</title>
+  <title>Function component w/ prop updates - Webact</title>
 </head>
-
 <body>
-  <h1>Function component with external CSS</h1>
+  <h1>Function component w/ prop updates</h1>
   <pre>
   <code>
   import { registerFunctionComponent } from './webact.js';
@@ -31,18 +29,20 @@
     `;
   }
 
-  registerFunctionComponent(NiceButton);
+  registerFunctionComponent(NiceButton, {
+    observedAttributes: ['value']
+  });
   </code>
   </pre>
-  <nice-button>I am a nice button</nice-button>
+  <nice-button></nice-button>
   <script type="module">
   import { registerFunctionComponent } from './webact.js';
 
-  async function NiceButton () {
+  async function NiceButton (props) {
     const { html, css } = this;
 
     html`
-      <button>
+      <button data-val="${props.value}">
         <slot></slot>
       </button>
     `;
@@ -58,8 +58,18 @@
     `;
   }
 
-  registerFunctionComponent(NiceButton);
+  registerFunctionComponent(NiceButton, {
+    observedAttributes: ['value']
+  });
+  </script>
+  <script>
+    const niceButton = document.querySelector('nice-button');;
+    setInterval(() => {
+      const val = Date.now();
+
+      niceButton.setAttribute('value', val);
+      niceButton.textContent = val;
+    }, 1000);
   </script>
 </body>
-
 </html>

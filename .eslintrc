@@ -2,5 +2,16 @@
   "extends": "tidal/esnext",
   "env": {
     "browser": true
+  },
+  "rules": {
+    "valid-jsdoc": [
+      "error",
+      {
+        "requireParamDescription": false,
+        "requireReturnDescription": false,
+        "requireReturnType": false,
+        "requireReturn": false
+      }
+    ]
   }
 }

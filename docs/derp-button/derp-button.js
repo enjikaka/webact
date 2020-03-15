@@ -1,4 +1,4 @@
-import { registerFunctionalComponent } from '../webact.js';
+import { registerFunctionComponent } from '../webact.js';
 
 function DerpButton () {
   const { useHTML, useCSS } = this;
@@ -7,4 +7,4 @@ function DerpButton () {
   useCSS();
 }
 
-export default registerFunctionalComponent(DerpButton, import.meta.url);
+export default registerFunctionComponent(DerpButton, import.meta.url);

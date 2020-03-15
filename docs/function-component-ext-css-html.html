@@ -9,7 +9,7 @@
   <h1>Function component with external CSS and external HTML</h1>
   <pre>
   <code>
-  import { registerFunctionalComponent } from './webact.js';
+  import { registerFunctionComponent } from './webact.js';
 
   async function NiceButton() {
     const { useHTML, useCSS } = this;
@@ -18,12 +18,12 @@
     await useCSS('./nice-button.css');
   }
 
-  registerFunctionalComponent(NiceButton, import.meta.url);
+  registerFunctionComponent(NiceButton, import.meta.url);
   </code>
   </pre>
   <nice-button>I am a nice button</nice-button>
   <script type="module">
-    import { registerFunctionalComponent } from './webact.js';
+    import { registerFunctionComponent } from './webact.js';
 
     async function NiceButton() {
       const { useHTML, useCSS } = this;
@@ -32,7 +32,7 @@
       await useCSS('./nice-button.css');
     }
 
-    registerFunctionalComponent(NiceButton, import.meta.url);
+    registerFunctionComponent(NiceButton, import.meta.url);
   </script>
 </body>
 
