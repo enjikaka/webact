@@ -33,9 +33,9 @@ document.querySelector('#app').innerHTML = `
 
 ### With HTML and CSS | Like Vue sigle file components
 
-Having HTML, CSS and JS in separate files if kind to both you and all the tools you use! Vue-style, and also the style I used Backbone with back in the days (read 2015).
+Having HTML, CSS and JS in separate files is kind to both you and all the tools you use! Vue-style, and also the style my team used with Backbone back in the days at TIDAL (read 2015).
 
-The following will load the HTML file in ShadowDOM with the CSS and create a `<my-app>` component.
+The following will load the HTML file into the components ShadowDOM with the CSS and create a `<my-app>` component.
 
 ```
 /components
@@ -69,7 +69,7 @@ document.querySelector('#app').innerHTML = `
 
 ### With methods | Like React function components
 
-You can create components via functions as well. This is done via the `registerFunctionComponent` helper method exposed. If observedAttributes is specified the component will re-render when one of those attributes changes.
+You can create components via functions as well. This is done via the `registerFunctionComponent` helper method exposed. If `observedAttributes` is specified the component will re-render when one of those attributes changes.
 
 ```js
 registerFunctionComponent(callback: Function, { metaUrl: ?string, observedAttributes: ?string[] })
@@ -208,9 +208,11 @@ export default function MyReactApp () {
 }
 ```
 
+This process should be the same for all virtual DOMs and JSX implementations.
+
 ## Usage
 
-Webact is currently running live in producation at these sites.
+Webact is currently running live in production at these sites.
 
 ### Saoirse
 
