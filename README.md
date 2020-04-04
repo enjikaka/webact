@@ -1,6 +1,6 @@
 # 🛠 Webact 🌎
 
-Webact is a tiny library that helps you create web components in a manner similar to Vue and React. Without the need for tools heavy tools like Babel and Webpack that cripples your iterative workflow. ⚙
+Webact is a tiny library that helps you create web components in a manner similar to Vue and React. Without the need for heavy tools like Babel and Webpack that cripples your iterative workflow. ⚙
 
 ## Examples
 
