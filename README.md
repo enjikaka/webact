@@ -216,14 +216,14 @@ Webact is currently running live in production at these sites.
 
 ### Saoirse
 
-URL: https://saoir.se/
+URL: https://saoir.se
 
 A small website to find music ids across music services.
 This site uses server site rendering with [Wext.js](https://github.com/Vufuzi/wext.js). And uses Webact for all client side component. (Which are pre-filled on the server using Wext.js).
 
 ### Podd-App
 
-URL: https://podd.add
+URL: https://podd.app
 
 A progressive web app where you can listen to podcasts.
 The site server side render web components (made with Webact) with help from [Wext.js](https://github.com/Vufuzi/wext.js) (bascially just an express with support for sending partials of new pages upon navigation).
