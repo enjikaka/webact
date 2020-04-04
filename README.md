@@ -218,3 +218,17 @@ URL: https://saoir.se/
 
 A small website to find music ids across music services.
 This site uses server site rendering with [Wext.js](https://github.com/Vufuzi/wext.js). And uses Webact for all client side component. (Which are pre-filled on the server using Wext.js).
+
+### Podd-App
+
+URL: https://podd.add
+
+A progressive web app where you can listen to podcasts.
+The site server side render web components (made with Webact) with help from [Wext.js](https://github.com/Vufuzi/wext.js) (bascially just an express with support for sending partials of new pages upon navigation).
+
+### Plypp Piano Beta
+
+URL: https://plypp-beta.netlify.com
+
+A piano applicaton with uses sound fonts. A sound font is pretty huge so time to interactive
+is a bit long, sorry about that. Web components here use the functional component pattern of Webact with css and html template string hooks.
