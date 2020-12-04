@@ -1,4 +1,5 @@
 import { camelToKebabCase, html, css, attributesToObject } from './helpers.js';
+const componentsByUs = [];
 
 /**
  * @param {Function} functionalComponent
@@ -179,10 +180,25 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
 export default function registerFunctionComponent (functionComponent, { metaUrl, observedAttributes } = { metaUrl: undefined, observedAttributes: [] }) {
   const kebabName = camelToKebabCase(functionComponent.name);
 
-  customElements.define(
-    kebabName,
-    generateFunctionComponent(functionComponent, { metaUrl, observedAttributes })
-  );
+  if (customElements.get(kebabName)) {
+    if (componentsByUs.includes(kebabName)) {
+      customElements.upgrade(
+        kebabName,
+        generateFunctionComponent(functionComponent, { metaUrl, observedAttributes })
+      );
+    } else {
+      console.log(`
+      Some else has already registered <${kebabName}> as a web component on the custom element registry.
+      `);
+    }
+  } else {
+    customElements.define(
+      kebabName,
+      generateFunctionComponent(functionComponent, { metaUrl, observedAttributes })
+    );
+
+    componentsByUs.push(kebabName);
+  }
 
   return kebabName;
 }
