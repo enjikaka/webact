@@ -6,7 +6,6 @@ import {
 
 const ComponentCache = {};
 const CSSCache = {};
-const componentsByUs = [];
 
 export class Component extends HTMLElement {
   constructor (componentPath) {
@@ -166,25 +165,10 @@ export default function registerComponent (classInstace) {
   const componentName = 'is' in classInstace ? classInstace.is : classInstace.prototype.constructor.name;
   const kebabName = camelToKebabCase(componentName);
 
-  if (customElements.get(kebabName)) {
-    if (componentsByUs.includes(kebabName)) {
-      customElements.upgrade(
-        kebabName,
-        classInstace
-      );
-    } else {
-      console.log(`
-      Some else has already registered <${kebabName}> as a web component on the custom element registry.
-      `);
-    }
-  } else {
-    customElements.define(
-      kebabName,
-      classInstace
-    );
-
-    componentsByUs.push(kebabName);
-  }
+  customElements.define(
+    kebabName,
+    classInstace
+  );
 
   return kebabName;
 }

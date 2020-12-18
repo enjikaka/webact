@@ -1,21 +1,30 @@
+import hmrTest from '../../../components/hmr-test.js';
 import { camelToKebabCase, html, css, attributesToObject } from './helpers.js';
 const componentsByUs = [];
+
+const HMROverride = new Map();
 
 /**
  * @param {Function} functionalComponent
  * @param {{ metaUrl: ?string, observedAttributes: string[] }} options
  * @returns {CustomElementConstructor}
  */
-function generateFunctionComponent (functionalComponent, { metaUrl, observedAttributes }) {
+function generateFunctionComponent (functionalComponent, { metaUrl, observedAttributes, kebabName }) {
   return class extends HTMLElement {
     constructor () {
       super();
 
+      this._tagName = kebabName;
       this._html = undefined;
       this._css = undefined;
       this._postRender = undefined;
       this._propsChanged = undefined;
       this._componentPath = metaUrl;
+
+      document.addEventListener('esm-hmr:webact-function-component', () => {
+        functionalComponent = HMROverride.get(kebabName) ? HMROverride.get(kebabName) : functionalComponent;
+        this._render();
+      });
     }
 
     get cssPath () {
@@ -182,21 +191,17 @@ export default function registerFunctionComponent (functionComponent, { metaUrl,
 
   if (customElements.get(kebabName)) {
     if (componentsByUs.includes(kebabName)) {
-      customElements.upgrade(
-        kebabName,
-        generateFunctionComponent(functionComponent, { metaUrl, observedAttributes })
-      );
+      HMROverride.set(kebabName, functionComponent);
+      document.dispatchEvent(new CustomEvent('esm-hmr:webact-function-component'));
     } else {
       console.log(`
-      Some else has already registered <${kebabName}> as a web component on the custom element registry.
+        Some else has already registered <${kebabName}> as a web component on the custom element registry.
       `);
     }
   } else {
-    customElements.define(
-      kebabName,
-      generateFunctionComponent(functionComponent, { metaUrl, observedAttributes })
-    );
+    const customElementClass = generateFunctionComponent(functionComponent, { metaUrl, observedAttributes, kebabName });
 
+    customElements.define(kebabName, customElementClass);
     componentsByUs.push(kebabName);
   }
 
