@@ -1,4 +1,3 @@
-import hmrTest from '../../../components/hmr-test.js';
 import { camelToKebabCase, html, css, attributesToObject } from './helpers.js';
 const componentsByUs = [];
 
