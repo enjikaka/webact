@@ -11,7 +11,7 @@
   "scripts": {
     "test": "npm run prepare-docs && http-server docs -p 1444 && open http://localhost:1444/docs",
     "build": "npx @pika/pack",
-    "release": "npm run build && && git add -A && git commit -am 'new release build' && npm version patch && cd pkg && npm publish && cd ../ && git push --follow-tags",
+    "release": "npm run build && git add -A && git commit -am 'new release build' && npm version patch && cd pkg && npm publish && cd ../ && git push --follow-tags",
     "prepare-docs": "cp pkg/dist-web/index.bundled.js docs/webact.js"
   },
   "@pika/pack": {
