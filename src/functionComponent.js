@@ -161,7 +161,9 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
       };
     }
 
-    attributeChangedCallback () {
+    async attributeChangedCallback () {
+      await this._rendering;
+
       requestAnimationFrame(() => {
         if (this._propsChanged instanceof Function) {
           this._propsChanged(attributesToObject(this.attributes));

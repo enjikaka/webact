@@ -1,7 +1,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Function component w/ prop updates - Webact</title>
+  <title>Function component w/ advanced prop updates - Webact</title>
 </head>
 <body>
   <h1>Function component w/ prop updates</h1>
@@ -10,12 +10,10 @@
   import { registerFunctionComponent } from './webact.js';
 
   async function NiceButton (({ value }) {
-    const { html, css } = this;
+    const { html, css, $, postRender } = this;
 
     html`
-      &lt;button&gt;
-        ${value}
-      &lt;/button&gt;
+      &lt;button&gt;&lt;/button&gt;
     `;
 
     css`
@@ -27,6 +25,10 @@
         border-radius: 4px;
       }
     `;
+
+    postRender(() => {
+      $('button').textContent = value;
+    });
   }
 
   registerFunctionComponent(NiceButton, {
