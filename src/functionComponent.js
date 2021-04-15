@@ -65,7 +65,6 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
           requestAnimationFrame(() => {
             this._sDOM.innerHTML = null;
             this._sDOM.appendChild(this._html);
-            resolve();
           });
         } else {
           console.warn('Missing HTML. Will render without it.');
@@ -74,11 +73,13 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
         resolve();
       });
 
-      requestAnimationFrame(() => {
-        if (this._postRender instanceof Function) {
-          this._postRender();
-        }
-      });
+      if (this._postRender instanceof Function) {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            this._postRender();
+          });
+        });
+      }
     }
 
     get customThis () {
@@ -160,12 +161,12 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
       };
     }
 
-    async attributeChangedCallback () {
-      await this._render(attributesToObject(this.attributes));
-
+    attributeChangedCallback () {
       requestAnimationFrame(() => {
         if (this._propsChanged instanceof Function) {
           this._propsChanged(attributesToObject(this.attributes));
+        } else {
+          this._render(attributesToObject(this.attributes));
         }
       });
     }
@@ -186,7 +187,7 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
  * @returns {string} Custom element tag name.
  */
 export default function registerFunctionComponent (functionComponent, { metaUrl, observedAttributes, name } = { metaUrl: undefined, observedAttributes: [], name: undefined }) {
-  const kebabName = name || camelToKebabCase(functionComponent.name);
+  const kebabName = name || camelToKebabCase(functionComponent.name);
 
   if (customElements.get(kebabName)) {
     if (componentsByUs.includes(kebabName)) {
