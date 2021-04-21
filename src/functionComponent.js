@@ -17,6 +17,8 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
     constructor () {
       super();
 
+      this._fetchingHTML = false;
+      this._fetchingCSS = false;
       this._postRender = undefined;
       this._propsChanged = undefined;
       this._componentPath = metaUrl;
@@ -135,6 +137,12 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
          * @param {string | URL} path
          */
         useHTML: async path => {
+          // Do not try to fetch again if several instances are launched at once.
+          if (this._fetchingHTML) {
+            return;
+          }
+
+          this._fetchingHTML = true;
           path = path || this.htmlPath;
 
           if (!path) {
@@ -154,6 +162,13 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
          * @param {string | URL} path
          */
         useCSS: async path => {
+          // Do not try to fetch again if several instances are launched at once.
+          if (this._fetchingCSS) {
+            return;
+          }
+
+          this._fetchingCSS = true;
+
           path = path || this.cssPath;
 
           if (!path) {
