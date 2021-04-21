@@ -90,23 +90,19 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
         await this._cssFetch;
       }
 
-      await new Promise(resolve => {
-        if (this._css) {
-          requestAnimationFrame(() => {
-            this._sDOM.adoptedStyleSheets = [this._css];
-          });
-        } else {
-          console.warn(`<${kebabName}>: Missing CSS. Will render without it.`);
-        }
+      if (this._css) {
+        requestAnimationFrame(() => {
+          this._sDOM.adoptedStyleSheets = [this._css];
+        });
+      } else {
+        console.warn(`<${kebabName}>: Missing CSS. Will render without it.`);
+      }
 
-        if (this._html) {
-          requestAnimationFrame(() => this._sDOM.appendChild(this._html));
-        } else {
-          console.warn((`<${kebabName}>: Missing HTML. Will render without it.`);
-        }
-
-        resolve();
-      });
+      if (this._html) {
+        requestAnimationFrame(() => this._sDOM.appendChild(this._html));
+      } else {
+        console.warn(`<${kebabName}>: Missing HTML. Will render without it.`);
+      }
 
       if (this._postRender instanceof Function) {
         requestAnimationFrame(() => {
