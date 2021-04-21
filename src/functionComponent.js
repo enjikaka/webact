@@ -17,8 +17,8 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
     constructor () {
       super();
 
-      this._fetchingHTML = false;
-      this._fetchingCSS = false;
+      this._htmlFetch = undefined;
+      this._cssFetch = undefined;
       this._postRender = undefined;
       this._propsChanged = undefined;
       this._componentPath = metaUrl;
@@ -82,23 +82,27 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
         await this._rendering;
       }
 
+      if (this._htmlFetch instanceof Promise) {
+        await this._htmlFetch;
+      }
+
+      if (this._cssFetch instanceof Promise) {
+        await this._cssFetch;
+      }
+
       await new Promise(resolve => {
         if (this._css) {
           requestAnimationFrame(() => {
-            // @ts-ignore
             this._sDOM.adoptedStyleSheets = [this._css];
           });
         } else {
-          console.warn('Missing CSS. Will render without it.');
+          console.warn(`<${kebabName}>: Missing CSS. Will render without it.`);
         }
 
         if (this._html) {
-          requestAnimationFrame(() => {
-            this._sDOM.innerHTML = null;
-            this._sDOM.appendChild(this._html);
-          });
+          requestAnimationFrame(() => this._sDOM.appendChild(this._html));
         } else {
-          console.warn('Missing HTML. Will render without it.');
+          console.warn((`<${kebabName}>: Missing HTML. Will render without it.`);
         }
 
         resolve();
@@ -138,51 +142,62 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
          */
         useHTML: async path => {
           // Do not try to fetch again if several instances are launched at once.
-          if (this._fetchingHTML) {
+          if (this._htmlFetch instanceof Promise) {
             return;
           }
 
-          this._fetchingHTML = true;
-          path = path || this.htmlPath;
+          this._htmlFetch = new Promise(async resolve => {
+            path = path || this.htmlPath;
 
-          if (!path) {
-            return;
-          }
+            if (!path) {
+              return;
+            }
 
-          if (path instanceof URL) {
-            path = path.toString();
-          }
+            if (path instanceof URL) {
+              path = path.toString();
+            }
 
-          const response = await fetch(path);
-          const text = await response.text();
+            const response = await fetch(path);
+            const text = await response.text();
 
-          return this.customThis.html([text]);
+            this.customThis.html([text]);
+
+            resolve();
+          });
+
+          return this._htmlFetch;
         },
         /**
          * @param {string | URL} path
          */
         useCSS: async path => {
           // Do not try to fetch again if several instances are launched at once.
-          if (this._fetchingCSS) {
+          if (this._cssFetch instanceof Promise) {
             return;
           }
 
-          this._fetchingCSS = true;
+          this._cssFetch = new Promise(async resolve => {
+            this._fetchingCSS = true;
 
-          path = path || this.cssPath;
+            path = path || this.cssPath;
 
-          if (!path) {
-            return;
-          }
+            if (!path) {
+              return;
+            }
 
-          if (path instanceof URL) {
-            path = path.toString();
-          }
+            if (path instanceof URL) {
+              path = path.toString();
+            }
 
-          const response = await fetch(path);
-          const text = await response.text();
+            const response = await fetch(path);
+            const text = await response.text();
 
-          return this.customThis.css([text]);
+            this.customThis.css([text]);
+
+            resolve();
+          });
+
+          return this._cssFetch;
         },
         postRender: method => {
           this._postRender = method;
@@ -217,7 +232,7 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
         if (this._propsChanged instanceof Function) {
           this._propsChanged(attributesToObject(this.attributes));
         } else {
-          console.error('You are observing attributes but not handling them in a propsChanged handler.');
+          console.error(`<${kebabName}>: You are observing attributes but not handling them in a propsChanged handler.`);
         }
       });
     }
