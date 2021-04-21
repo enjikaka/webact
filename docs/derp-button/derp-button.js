@@ -7,4 +7,6 @@ function DerpButton () {
   useCSS();
 }
 
-export default registerFunctionComponent(DerpButton, import.meta.url);
+export default registerFunctionComponent(DerpButton, {
+  metaUrl: import.meta.url
+});

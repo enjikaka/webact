@@ -36,7 +36,7 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
         templateElement.content.appendChild(documentFragment);
 
         templates.set(kebabName, templateElement);
-      } else if (!this._fetchingHTML) {
+      } else if (!this._htmlFetch) {
         console.error('The component already has template initialized. Keep updates in postRender.');
       }
     }
@@ -48,7 +48,7 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
     set _css (cssStyleSheet) {
       if (!styleSheets.has(kebabName)) {
         styleSheets.set(kebabName, cssStyleSheet);
-      } else if (!this._fetchingCSS) {
+      } else if (!this._cssFetch) {
         console.error('The component already has stylesheet initialized. Keep updates in postRender.');
       }
     }
@@ -142,7 +142,7 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
             return;
           }
 
-          this._htmlFetch = new Promise(async resolve => {
+          const fetchHTML = new Promise(async resolve => {
             path = path || this.htmlPath;
 
             if (!path) {
@@ -158,8 +158,12 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
 
             this.customThis.html([text]);
 
+            this._htmlFetch = undefined;
+
             resolve();
           });
+
+          this._htmlFetch = fetchHTML;
 
           return this._htmlFetch;
         },
@@ -172,7 +176,7 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
             return;
           }
 
-          this._cssFetch = new Promise(async resolve => {
+          const fetchCSS = new Promise(async resolve => {
             this._fetchingCSS = true;
 
             path = path || this.cssPath;
@@ -190,8 +194,12 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
 
             this.customThis.css([text]);
 
+            this._cssFetch = undefined;
+
             resolve();
           });
+
+          this._cssFetch = fetchCSS;
 
           return this._cssFetch;
         },
