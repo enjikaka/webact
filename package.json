@@ -1,6 +1,6 @@
 {
   "name": "webact",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "A framework for efficiently handling web components",
   "type": "module",
   "module": "index.js",
