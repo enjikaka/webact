@@ -36,25 +36,25 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
         templateElement.content.appendChild(documentFragment);
 
         templates.set(kebabName, templateElement);
-      } else {
+      } else if (!this._fetchingHTML) {
         console.error('The component already has template initialized. Keep updates in postRender.');
       }
     }
 
     get _html () {
-      return templates.get(kebabName).content.cloneNode(true);
+      return templates.has(kebabName) ? templates.get(kebabName).content.cloneNode(true) : null;
     }
 
     set _css (cssStyleSheet) {
       if (!styleSheets.has(kebabName)) {
         styleSheets.set(kebabName, cssStyleSheet);
-      } else {
+      } else if (!this._fetchingCSS) {
         console.error('The component already has stylesheet initialized. Keep updates in postRender.');
       }
     }
 
     get _css () {
-      return styleSheets.get(kebabName);
+      return styleSheets.has(kebabName) ? styleSheets.get(kebabName) : null;
     }
 
     get cssPath () {
