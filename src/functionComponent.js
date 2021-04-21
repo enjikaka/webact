@@ -1,7 +1,11 @@
 import { camelToKebabCase, html, css, attributesToObject } from './helpers.js';
+
 const componentsByUs = [];
 
 const HMROverride = new Map();
+
+const templates = new Map();
+const styleSheets = new Map();
 
 /**
  * @param {Function} functionalComponent
@@ -13,9 +17,6 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
     constructor () {
       super();
 
-      this._tagName = kebabName;
-      this._html = undefined;
-      this._css = undefined;
       this._postRender = undefined;
       this._propsChanged = undefined;
       this._componentPath = metaUrl;
@@ -24,6 +25,34 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
         functionalComponent = HMROverride.get(kebabName) ? HMROverride.get(kebabName) : functionalComponent;
         this._render();
       });
+    }
+
+    set _html (documentFragment) {
+      if (!templates.has(kebabName)) {
+        const templateElement = document.createElement('template');
+
+        templateElement.content.appendChild(documentFragment);
+
+        templates.set(kebabName, templateElement);
+      } else {
+        console.error('The component already has template initialized. Keep updates in postRender.');
+      }
+    }
+
+    get _html () {
+      return templates.get(kebabName).content.cloneNode(true);
+    }
+
+    set _css (cssStyleSheet) {
+      if (!styleSheets.has(kebabName)) {
+        styleSheets.set(kebabName, cssStyleSheet);
+      } else {
+        console.error('The component already has stylesheet initialized. Keep updates in postRender.');
+      }
+    }
+
+    get _css () {
+      return styleSheets.get(kebabName);
     }
 
     get cssPath () {
@@ -147,11 +176,16 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
           this._propsChanged = method;
         },
         $: selector => {
-          if (selector === undefined) {
+          if (
+            selector === undefined ||
+            selector === ':host'
+          ) {
             return this;
           }
 
-          if (selector === ':host') {
+          if (
+            selector === ':root'
+          ) {
             return this._sDOM;
           }
 
@@ -168,7 +202,7 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
         if (this._propsChanged instanceof Function) {
           this._propsChanged(attributesToObject(this.attributes));
         } else {
-          this._render(attributesToObject(this.attributes));
+          console.error('You are observing attributes but not handling them in a propsChanged handler.');
         }
       });
     }
@@ -196,8 +230,8 @@ export default function registerFunctionComponent (functionComponent, { metaUrl,
       HMROverride.set(kebabName, functionComponent);
       document.dispatchEvent(new CustomEvent('esm-hmr:webact-function-component'));
     } else {
-      console.log(`
-        Some else has already registered <${kebabName}> as a web component on the custom element registry.
+      throw new Error(`
+        Some else has already registered <${kebabName}> in the custom element registry.
       `);
     }
   } else {
