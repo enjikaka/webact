@@ -1,10 +1,10 @@
 import { registerFunctionComponent } from '../webact.js';
 
-function DerpButton () {
+async function DerpButton () {
   const { useHTML, useCSS } = this;
 
-  useHTML();
-  useCSS();
+  await useHTML();
+  await useCSS();
 }
 
 export default registerFunctionComponent(DerpButton, {

@@ -84,14 +84,6 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
         await this._rendering;
       }
 
-      if (this._htmlFetch instanceof Promise) {
-        await this._htmlFetch;
-      }
-
-      if (this._cssFetch instanceof Promise) {
-        await this._cssFetch;
-      }
-
       if (this._css) {
         requestAnimationFrame(() => {
           this._sDOM.adoptedStyleSheets = [this._css];
@@ -123,8 +115,12 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
          * @returns {DocumentFragment}
          */
         html: (strings, ...rest) => {
-          // A template has already been provided. Only allowed once. Ignore subsequent attempts.
-          if (this._html && !this._hmrUpdate) {
+          if (
+            // A template has already been provided. Only allowed once. Ignore subsequent attempts.
+            this._html !== null &&
+            // HMR is an expection though.
+            this._hmrUpdate === false
+          ) {
             return;
           }
 
@@ -138,7 +134,12 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
          */
         css: (strings, ...rest) => {
           // A stylesheet has already been provided. Only allowed once. Ignore subsequent attempts.
-          if (this._css && !this._hmrUpdate) {
+          if (
+            // A template has already been provided. Only allowed once. Ignore subsequent attempts.
+            this._css !== null &&
+            // HMR is an expection though.
+            this._hmrUpdate === false
+          ) {
             return;
           }
 
@@ -150,71 +151,39 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
          * @param {string | URL} path
          */
         useHTML: async path => {
-          // Do not try to fetch again if several instances are launched at once.
-          if (this._htmlFetch instanceof Promise) {
-            return this._htmlFetch;
+          path = path || this.htmlPath;
+
+          if (!path) {
+            return;
           }
 
-          const fetchHTML = async resolve => {
-            path = path || this.htmlPath;
+          if (path instanceof URL) {
+            path = path.toString();
+          }
 
-            if (!path) {
-              return;
-            }
+          const response = await fetch(path);
+          const text = await response.text();
 
-            if (path instanceof URL) {
-              path = path.toString();
-            }
-
-            const response = await fetch(path);
-            const text = await response.text();
-
-            this.customThis.html([text]);
-
-            this._htmlFetch = undefined;
-
-            resolve();
-          };
-
-          this._htmlFetch = fetchHTML;
-
-          return this._htmlFetch;
+          this.customThis.html([text]);
         },
         /**
          * @param {string | URL} path
          */
         useCSS: async path => {
-          // Do not try to fetch again if several instances are launched at once.
-          if (this._cssFetch instanceof Promise) {
-            return this._cssFetch;
+          path = path || this.cssPath;
+
+          if (!path) {
+            return;
           }
 
-          const fetchCSS = async resolve => {
-            this._fetchingCSS = true;
+          if (path instanceof URL) {
+            path = path.toString();
+          }
 
-            path = path || this.cssPath;
+          const response = await fetch(path);
+          const text = await response.text();
 
-            if (!path) {
-              return;
-            }
-
-            if (path instanceof URL) {
-              path = path.toString();
-            }
-
-            const response = await fetch(path);
-            const text = await response.text();
-
-            this.customThis.css([text]);
-
-            this._cssFetch = undefined;
-
-            resolve();
-          };
-
-          this._cssFetch = fetchCSS;
-
-          return this._cssFetch;
+          this.customThis.css([text]);
         },
         postRender: method => {
           this._postRender = method;

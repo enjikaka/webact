@@ -9,7 +9,7 @@
     "url": "https://github.com/enjikaka/webact"
   },
   "scripts": {
-    "test": "npm run prepare-docs && http-server docs -p 1444 && open http://localhost:1444/docs",
+    "test": "npm run build && npm run prepare-docs && http-server docs -p 1444",
     "build": "npx @pika/pack",
     "release": "npm version patch && npm run build && cd pkg && npm publish && cd ../ && git push --follow-tags",
     "prepare-docs": "cp pkg/dist-web/index.bundled.js docs/webact.js"
