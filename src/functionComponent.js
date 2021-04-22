@@ -36,8 +36,6 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
         templateElement.content.appendChild(documentFragment);
 
         templates.set(kebabName, templateElement);
-      } else if (!this._htmlFetch) {
-        console.error('The component already has template initialized. Keep updates in postRender.');
       }
     }
 
@@ -48,8 +46,6 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
     set _css (cssStyleSheet) {
       if (!styleSheets.has(kebabName)) {
         styleSheets.set(kebabName, cssStyleSheet);
-      } else if (!this._cssFetch) {
-        console.error('The component already has stylesheet initialized. Keep updates in postRender.');
       }
     }
 
@@ -120,6 +116,11 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
          * @returns {DocumentFragment}
          */
         html: (strings, ...rest) => {
+          // A template has already been provided. Only allowed once. Ignore subsequent attempts.
+          if (this._html) {
+            return;
+          }
+
           this._html = html(strings, ...rest);
 
           return this._html;
@@ -129,6 +130,11 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
          * @returns {CSSStyleSheet}
          */
         css: (strings, ...rest) => {
+          // A stylesheet has already been provided. Only allowed once. Ignore subsequent attempts.
+          if (this._css) {
+            return;
+          }
+
           this._css = css(strings, ...rest);
 
           return this._css;
@@ -139,10 +145,10 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
         useHTML: async path => {
           // Do not try to fetch again if several instances are launched at once.
           if (this._htmlFetch instanceof Promise) {
-            return;
+            return this._htmlFetch;
           }
 
-          const fetchHTML = new Promise(async resolve => {
+          const fetchHTML = async resolve => {
             path = path || this.htmlPath;
 
             if (!path) {
@@ -161,7 +167,7 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
             this._htmlFetch = undefined;
 
             resolve();
-          });
+          };
 
           this._htmlFetch = fetchHTML;
 
@@ -173,10 +179,10 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
         useCSS: async path => {
           // Do not try to fetch again if several instances are launched at once.
           if (this._cssFetch instanceof Promise) {
-            return;
+            return this._cssFetch;
           }
 
-          const fetchCSS = new Promise(async resolve => {
+          const fetchCSS = async resolve => {
             this._fetchingCSS = true;
 
             path = path || this.cssPath;
@@ -197,7 +203,7 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
             this._cssFetch = undefined;
 
             resolve();
-          });
+          };
 
           this._cssFetch = fetchCSS;
 
@@ -236,7 +242,10 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
         if (this._propsChanged instanceof Function) {
           this._propsChanged(attributesToObject(this.attributes));
         } else {
-          console.error(`<${kebabName}>: You are observing attributes but not handling them in a propsChanged handler.`);
+          console.error(`
+            <${kebabName}>: Attribute has changed and you are observing attributes, but not handling them in a propsChanged handler.
+            Remove observedAttributes or or actually use them.
+          `);
         }
       });
     }
