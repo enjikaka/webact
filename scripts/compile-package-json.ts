@@ -4,13 +4,15 @@ const json = JSON.parse(data);
 const entry = './index.js';
 
 json.exports =  {};
-json.exports.import = entry;
+json.exports['.'] = entry;
 json.browser = entry;
+
 json.type = 'module';
-json.module = entry;
+
 json.types = './index.d.ts';
 
-delete json.scripts;
-delete json.type;
+if ('scripts' in json) {
+  delete json.scripts;
+}
 
 await Deno.writeTextFile('pkg/package.json', JSON.stringify(json, null , 2));

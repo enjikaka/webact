@@ -8,10 +8,6 @@
     "type": "git",
     "url": "https://github.com/enjikaka/webact"
   },
-  "scripts": {
-    "test": "npm run build && npm run prepare-docs && http-server docs -p 1444",
-    "prepare-docs": "cp pkg/dist-web/index.bundled.js docs/webact.js"
-  },
   "keywords": [
     "web",
     "web",

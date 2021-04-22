@@ -9,3 +9,7 @@ release:
 	make build
 	cd pkg && npm publish
 	git push --follow-tags
+
+test:
+	cp pkg/index.js docs/webact.js
+	http-server docs -p 1444
