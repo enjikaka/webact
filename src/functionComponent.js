@@ -21,16 +21,18 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
       this._cssFetch = undefined;
       this._postRender = undefined;
       this._propsChanged = undefined;
+      this._hmrUpdate = false;
       this._componentPath = metaUrl;
 
       document.addEventListener('esm-hmr:webact-function-component', () => {
-        functionalComponent = HMROverride.get(kebabName) ? HMROverride.get(kebabName) : functionalComponent;
+        this._hmrUpdate = true;
+        functionalComponent = HMROverride.has(kebabName) ? HMROverride.get(kebabName) : functionalComponent;
         this._render();
       });
     }
 
     set _html (documentFragment) {
-      if (!templates.has(kebabName)) {
+      if (!templates.has(kebabName) || this._hmrUpdate) {
         const templateElement = document.createElement('template');
 
         templateElement.content.appendChild(documentFragment);
@@ -44,7 +46,7 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
     }
 
     set _css (cssStyleSheet) {
-      if (!styleSheets.has(kebabName)) {
+      if (!styleSheets.has(kebabName) || this._hmrUpdate) {
         styleSheets.set(kebabName, cssStyleSheet);
       }
     }
@@ -71,6 +73,10 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
       return observedAttributes;
     }
 
+    /**
+     * @param {Record<string, string>} props
+     * @param {{ force: boolean }} options
+     */
     async _render (props) {
       this._rendering = functionalComponent.apply(this.customThis, [props]);
 
@@ -104,6 +110,7 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
             this._postRender();
+            this._hmrUpdate = false;
           });
         });
       }
@@ -117,7 +124,7 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
          */
         html: (strings, ...rest) => {
           // A template has already been provided. Only allowed once. Ignore subsequent attempts.
-          if (this._html) {
+          if (this._html && !this._hmrUpdate) {
             return;
           }
 
@@ -131,7 +138,7 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
          */
         css: (strings, ...rest) => {
           // A stylesheet has already been provided. Only allowed once. Ignore subsequent attempts.
-          if (this._css) {
+          if (this._css && !this._hmrUpdate) {
             return;
           }
 
