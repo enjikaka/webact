@@ -158,12 +158,13 @@ export class Component extends HTMLElement {
  * and registes it basedof the ClassName as class-name.
  *
  * @param {CustomElementConstructor} classInstace Instance of a custom element to register
+ * @param {{ name: ?string }} options
  * @returns {string} the kebab-case version fo ClassName
  */
-export default function registerComponent (classInstace) {
+export default function registerComponent (classInstace, { name } = { name: undefined }) {
   // @ts-ignore
   const componentName = 'is' in classInstace ? classInstace.is : classInstace.prototype.constructor.name;
-  const kebabName = camelToKebabCase(componentName);
+  const kebabName = name || camelToKebabCase(componentName);
 
   customElements.define(
     kebabName,
