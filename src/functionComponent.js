@@ -7,6 +7,9 @@ const HMROverride = new Map();
 const templates = new Map();
 const styleSheets = new Map();
 
+const cssFetches = new Map();
+const htmlFetches = new Map();
+
 /**
  * @param {Function} functionalComponent
  * @param {{ metaUrl: ?string, observedAttributes: string[] }} options
@@ -17,8 +20,6 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
     constructor () {
       super();
 
-      this._htmlFetch = undefined;
-      this._cssFetch = undefined;
       this._postRender = undefined;
       this._propsChanged = undefined;
       this._hmrUpdate = false;
@@ -151,6 +152,11 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
          * @param {string | URL} path
          */
         useHTML: async path => {
+          // If another instance of this component is fetching HTML, then don't fetch again. Wait for same HTML file.
+          if (htmlFetches.has(kebabName)) {
+            return htmlFetches.get(kebabName);
+          }
+
           path = path || this.htmlPath;
 
           if (!path) {
@@ -161,15 +167,28 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
             path = path.toString();
           }
 
-          const response = await fetch(path);
-          const text = await response.text();
+          const htmlFetching = async () => {
+            const response = await fetch(path);
+            const text = await response.text();
 
-          this.customThis.html([text]);
+            this.customThis.html([text]);
+          };
+
+          const promise = htmlFetching();
+
+          htmlFetches.set(kebabName, promise);
+
+          return promise;
         },
         /**
          * @param {string | URL} path
          */
         useCSS: async path => {
+          // If another instance of this component is fetching CSS, then don't fetch again. Wait for same CSS file.
+          if (cssFetches.has(kebabName)) {
+            return cssFetches.get(kebabName);
+          }
+
           path = path || this.cssPath;
 
           if (!path) {
@@ -180,10 +199,20 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
             path = path.toString();
           }
 
-          const response = await fetch(path);
-          const text = await response.text();
+          const cssFetching = async () => {
+            const response = await fetch(path);
+            const text = await response.text();
 
-          this.customThis.css([text]);
+            this.customThis.css([text]);
+
+            cssFetches.delete(kebabName);
+          };
+
+          const promise = cssFetching();
+
+          cssFetches.set(kebabName, promise);
+
+          return promise;
         },
         postRender: method => {
           this._postRender = method;
