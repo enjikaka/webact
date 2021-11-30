@@ -1,0 +1,33 @@
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/cache@v2
+        env:
+          cache-name: build
+        with:
+          path: ./pkg
+          key: ${{ runner.os }}-build-${{ hashFiles('package.json') }}
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 16
+      - run: npm install
+      - run: npm version patch
+      - run: make build
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/cache@v2
+        with:
+          path: ./pkg
+          key: ${{ runner.os }}-build-${{ hashFiles('package.json') }}
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 16
+      - uses: JS-DevTools/npm-publish@v1
+        with:
+          token: ${{ secrets.NPM_TOKEN }}
+          package: ./pkg/package.json
