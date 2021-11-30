@@ -3,6 +3,15 @@ const json = JSON.parse(data);
 
 const entry = './index.js';
 
+const process = Deno.run({
+  cmd: ["git", "describe", "--tags", "--abbrev=0"], 
+  stdout: "piped"
+});
+
+const output = await process.output();
+const version = new TextDecoder().decode(output);
+
+json.version = version.split('v')[1];
 json.exports =  {};
 json.exports['.'] = entry;
 json.browser = entry;
