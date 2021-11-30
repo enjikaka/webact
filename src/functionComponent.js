@@ -25,6 +25,8 @@ function generateFunctionComponent(functionalComponent, { metaUrl, observedAttri
       this._hmrUpdate = false;
       this._componentPath = metaUrl;
 
+      this._hasRendered = false;
+
       document.addEventListener('esm-hmr:webact-function-component', () => {
         this._hmrUpdate = true;
         functionalComponent = HMROverride.has(kebabName) ? HMROverride.get(kebabName) : functionalComponent;
@@ -104,6 +106,7 @@ function generateFunctionComponent(functionalComponent, { metaUrl, observedAttri
           requestAnimationFrame(() => {
             this._postRender();
             this._hmrUpdate = false;
+            this._hasRendered = true;
           });
         });
       }
@@ -244,18 +247,22 @@ function generateFunctionComponent(functionalComponent, { metaUrl, observedAttri
     }
 
     async attributeChangedCallback() {
-      await this._rendering;
-
-      requestAnimationFrame(() => {
-        if (this._propsChanged instanceof Function) {
-          this._propsChanged(attributesToObject(this.attributes));
-        } else {
-          console.error(`
-            <${kebabName}>: Attribute has changed and you are observing attributes, but not handling them in a propsChanged handler.
-            Remove observedAttributes or or actually use them.
-          `);
-        }
-      });
+      if (this._hasRendered) {
+        requestAnimationFrame(() => {
+          if (this._propsChanged instanceof Function) {
+            this._propsChanged(attributesToObject(this.attributes));
+          } else {
+            console.error(`
+              <${kebabName}>: Attribute has changed and you are observing attributes, but not handling them in a propsChanged handler.
+              Remove observedAttributes or or actually use them.
+            `);
+          }
+        });
+      } else {
+        console.warn(`
+          <${kebabName}>: Attribute has changed and you are observing attributes, but the attributes changed before render.
+        `);
+      }
     }
 
     async connectedCallback() {
