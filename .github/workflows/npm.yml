@@ -1,4 +1,7 @@
-on: push
+on:
+  push:
+    tags:
+      - '*'
 
 jobs:
   build:
@@ -15,7 +18,6 @@ jobs:
         with:
           node-version: 16
       - run: npm install
-      - run: npm version patch
       - run: make build
   publish:
     runs-on: ubuntu-latest
