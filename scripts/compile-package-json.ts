@@ -11,7 +11,7 @@ const process = Deno.run({
 const output = await process.output();
 const version = new TextDecoder().decode(output);
 
-json.version = version.split('v')[1];
+json.version = version.split('v')[1].trim();
 json.exports =  {};
 json.exports['.'] = entry;
 json.browser = entry;
