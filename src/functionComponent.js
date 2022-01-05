@@ -114,6 +114,9 @@ function generateFunctionComponent(functionalComponent, { metaUrl, observedAttri
 
     get customThis() {
       return {
+        get props () {
+          return attributesToObject(this.attributes);
+        },
         /**
          * @param {string[]} strings
          * @returns {DocumentFragment}
@@ -259,9 +262,13 @@ function generateFunctionComponent(functionalComponent, { metaUrl, observedAttri
           }
         });
       } else {
+        await this._rendering;
+        this.attributeChangedCallback();
+        /*
         console.warn(`
           <${kebabName}>: Attribute has changed and you are observing attributes, but the attributes changed before render.
         `);
+        */
       }
     }
 
