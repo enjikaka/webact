@@ -7,39 +7,48 @@
   <h1>Function component w/ prop updates</h1>
   <pre>
   <code>
-  import { registerFunctionComponent } from './webact.js';
+    import { registerFunctionComponent } from './webact.js';
 
-  async function NiceButton (({ value }) {
-    const { html, css } = this;
+    async function NiceButton (initialProps) {
+      const { html, css, propsChanged, postRender, $ } = this;
 
-    html`
-      &lt;button&gt;
-        ${value}
-      &lt;/button&gt;
-    `;
+      html`
+        &lt;button&gt;
+          &lt;slot&gt;&lt;/slot&gt;
+        &lt;/button&gt;
+      `;
 
-    css`
-      button {
-        background-color: blue;
-        color: white;
-        padding: 1rem;
-        border: 1px solid yellow;
-        border-radius: 4px;
-      }
-    `;
-  }
+      css`
+        button {
+          background-color: blue;
+          color: white;
+          padding: 1rem;
+          border: 1px solid yellow;
+          border-radius: 4px;
+        }
+      `;
 
-  registerFunctionComponent(NiceButton, {
-    observedAttributes: ['value']
-  });
+      const updateContent = ({ value }) => {
+        // This will be the unnamed &lt;slot&gt;.
+        host.textContent = value;
+      };
+
+      postRender(() => updateContent(initialProps));
+      propsChanged(updateContent);
+    }
+
+    registerFunctionComponent(NiceButton, {
+      observedAttributes: ['value']
+    });
   </code>
   </pre>
-  <nice-button></nice-button>
+  <nice-button value="Time to come..."></nice-button>
   <script type="module">
   import { registerFunctionComponent } from './webact.js';
 
-  async function NiceButton ({ value }) {
-    const { html, css, propsChanged, $ } = this;
+  async function NiceButton (initialProps) {
+    const { html, css, propsChanged, postRender, $ } = this;
+    const host = $(':host');
 
     html`
       <button>
@@ -57,12 +66,15 @@
       }
     `;
 
-    propsChanged(({ value }) => {
-      const host = $();
-
+    const updateContent = ({ value }) => {
       // This will be the unnamed <slot>.
       host.textContent = value;
-    });
+
+      console.log(initialProps, this.props, this);
+    };
+
+    postRender(() => updateContent(initialProps));
+    propsChanged(updateContent);
   }
 
   registerFunctionComponent(NiceButton, {

@@ -11,6 +11,6 @@ release:
 	cd pkg && npm publish
 	git push --follow-tags
 
-test:
+test: build
 	cp pkg/index.js docs/webact.js
 	http-server docs -p 1444

@@ -112,11 +112,12 @@ function generateFunctionComponent(functionalComponent, { metaUrl, observedAttri
       }
     }
 
+    get _props() {
+      return attributesToObject(this.attributes);
+    }
+
     get customThis() {
       return {
-        get props () {
-          return attributesToObject(this.attributes);
-        },
         /**
          * @param {string[]} strings
          * @returns {DocumentFragment}
@@ -250,26 +251,20 @@ function generateFunctionComponent(functionalComponent, { metaUrl, observedAttri
     }
 
     async attributeChangedCallback() {
-      if (this._hasRendered) {
-        requestAnimationFrame(() => {
-          if (this._propsChanged instanceof Function) {
-            this._propsChanged(attributesToObject(this.attributes));
-          } else {
-            console.error(`
-              <${kebabName}>: Attribute has changed and you are observing attributes, but not handling them in a propsChanged handler.
-              Remove observedAttributes or or actually use them.
-            `);
-          }
-        });
-      } else {
+      if (this._rendering instanceof Promise) {
         await this._rendering;
-        this.attributeChangedCallback();
-        /*
-        console.warn(`
-          <${kebabName}>: Attribute has changed and you are observing attributes, but the attributes changed before render.
-        `);
-        */
       }
+
+      requestAnimationFrame(() => {
+        if (this._propsChanged instanceof Function) {
+          this._propsChanged(attributesToObject(this.attributes));
+        } else {
+          console.error(`
+            <${kebabName}>: Attribute has changed and you are observing attributes, but not handling them in a propsChanged handler.
+            Remove observedAttributes or or actually use them.
+          `);
+        }
+      });
     }
 
     async connectedCallback() {
@@ -277,7 +272,7 @@ function generateFunctionComponent(functionalComponent, { metaUrl, observedAttri
         mode: 'closed'
       });
 
-      this._render(attributesToObject(this.attributes));
+      this._render(this._props);
     }
 
     disconnectedCallback() {
