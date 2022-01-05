@@ -3,6 +3,7 @@ build:
 	npx tsc
 	deno run --allow-run --allow-read --allow-write scripts/compile-package-json.ts
 	cp README.md pkg/README.md
+	cp pkg/index.js docs/webact.js
 
 release:
 	npm version patch
