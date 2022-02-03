@@ -52,7 +52,7 @@ export function stringToElements (string) {
  * @param {any[]} rest
  * @returns {CSSStyleSheet}
  */
-export function css (strings, ...rest) {
+ export function modernCSS (strings, ...rest) {
   const text = Array.isArray(strings) ?
     strings.reduce((acc, curr, i) => {
       return acc + (rest[i] ? curr + rest[i] : curr);
@@ -64,6 +64,42 @@ export function css (strings, ...rest) {
   sheet.replace(text);
 
   return sheet;
+}
+
+/**
+ * @param {string[] | string} strings
+ * @param {any[]} rest
+ * @returns {HTMLStyleElement}
+ */
+ export function oldCSS (strings, ...rest) {
+  const text = Array.isArray(strings) ?
+    strings.reduce((acc, curr, i) => {
+      return acc + (rest[i] ? curr + rest[i] : curr);
+    }, '') :
+    strings;
+  const style = document.createElement('style');
+
+  style.innerText = text;
+
+  return style;
+}
+
+/**
+ * @param {string[] | string} strings
+ * @param {any[]} rest
+ * @returns {CSSStyleSheet}
+ */
+export function css (strings, ...rest) {
+  let modern = false;
+
+  try {
+    const icss = new CSSStyleSheet();
+    modern = true;
+  } catch (e) {
+    modern = false;
+  }
+  
+  return modern ? modernCSS(strings, ...rest) : oldCSS(strings, ...rest);
 }
 
 /**

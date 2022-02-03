@@ -88,16 +88,22 @@ function generateFunctionComponent(functionalComponent, { metaUrl, observedAttri
       }
 
       if (this._css) {
-        requestAnimationFrame(() => {
-          this._sDOM.adoptedStyleSheets = [this._css];
-        });
-      } else {
+        if ('adoptedStyleSheets' in this._sDOM && this._css instanceof CSSStyleSheet) {
+          requestAnimationFrame(() => {
+            this._sDOM.adoptedStyleSheets = [this._css];
+          });
+        }
+
+        if (this._css instanceof HTMLStyleElement) {
+          this._sDOM.appendChild(this._css);
+        }
+      } else if (document.location.href.includes('localhost')) {
         console.warn(`<${kebabName}>: Missing CSS. Will render without it.`);
       }
 
       if (this._html) {
         requestAnimationFrame(() => this._sDOM.appendChild(this._html));
-      } else {
+      } else if (document.location.href.includes('localhost')) {
         console.warn(`<${kebabName}>: Missing HTML. Will render without it.`);
       }
 
@@ -258,7 +264,7 @@ function generateFunctionComponent(functionalComponent, { metaUrl, observedAttri
       requestAnimationFrame(() => {
         if (this._propsChanged instanceof Function) {
           this._propsChanged(attributesToObject(this.attributes));
-        } else {
+        } else if (document.location.href.includes('localhost')) {
           console.error(`
             <${kebabName}>: Attribute has changed and you are observing attributes, but not handling them in a propsChanged handler.
             Remove observedAttributes or or actually use them.
