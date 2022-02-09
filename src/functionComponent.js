@@ -9,6 +9,7 @@ const styleSheets = new Map();
 
 const cssFetches = new Map();
 const htmlFetches = new Map();
+const lastPropChange = new Map();
 
 /**
  * @param {Function} functionalComponent
@@ -268,7 +269,15 @@ function generateFunctionComponent (
 
       requestAnimationFrame(() => {
         if (this._propsChanged instanceof Function) {
+          const serializedChange = JSON.stringify(attributesToObject(this.attributes));
+
+          // Avoid emitting propChanges when no props change, even if the attributeChangedCallback is run.
+          if (lastPropChange.get(kebabName) === serializedChange) {
+            return;
+          }
+
           this._propsChanged(attributesToObject(this.attributes));
+          lastPropChange.set(kebabName, serializedChange);
         } else if (document.location.href.includes('localhost')) {
           console.error(`
             <${kebabName}>: Attribute has changed and you are observing attributes, but not handling them in a propsChanged handler.
