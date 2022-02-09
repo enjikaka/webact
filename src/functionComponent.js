@@ -15,7 +15,10 @@ const htmlFetches = new Map();
  * @param {{ metaUrl: ?string, observedAttributes: string[] }} options
  * @returns {CustomElementConstructor}
  */
-function generateFunctionComponent (functionalComponent, { metaUrl, observedAttributes, kebabName }) {
+function generateFunctionComponent (
+  functionalComponent,
+  { metaUrl, observedAttributes, kebabName }
+) {
   return class extends HTMLElement {
     constructor () {
       super();
@@ -29,7 +32,9 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
 
       document.addEventListener('esm-hmr:webact-function-component', () => {
         this._hmrUpdate = true;
-        functionalComponent = HMROverride.has(kebabName) ? HMROverride.get(kebabName) : functionalComponent;
+        functionalComponent = HMROverride.has(kebabName) ?
+          HMROverride.get(kebabName) :
+          functionalComponent;
         this._render();
       });
     }
@@ -45,7 +50,9 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
     }
 
     get _html () {
-      return templates.has(kebabName) ? templates.get(kebabName).content.cloneNode(true) : null;
+      return templates.has(kebabName) ?
+        templates.get(kebabName).content.cloneNode(true) :
+        null;
     }
 
     set _css (cssStyleSheet) {
@@ -88,7 +95,10 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
       }
 
       if (this._css) {
-        if ('adoptedStyleSheets' in this._sDOM && this._css instanceof CSSStyleSheet) {
+        if (
+          'adoptedStyleSheets' in this._sDOM &&
+          this._css instanceof CSSStyleSheet
+        ) {
           requestAnimationFrame(() => {
             this._sDOM.adoptedStyleSheets = [this._css];
           });
@@ -237,16 +247,11 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
           this._propsChanged = method;
         },
         $: selector => {
-          if (
-            selector === undefined ||
-            selector === ':host'
-          ) {
+          if (selector === undefined || selector === ':host') {
             return this;
           }
 
-          if (
-            selector === ':root'
-          ) {
+          if (selector === ':root') {
             return this._sDOM;
           }
 
@@ -301,20 +306,33 @@ function generateFunctionComponent (functionalComponent, { metaUrl, observedAttr
  * @param {FunctionComponentOptions} options
  * @returns {string} Custom element tag name.
  */
-export default function registerFunctionComponent (functionComponent, { metaUrl, observedAttributes, name } = { metaUrl: undefined, observedAttributes: [], name: undefined }) {
+export default function registerFunctionComponent (
+  functionComponent,
+  { metaUrl, observedAttributes, name } = {
+    metaUrl: undefined,
+    observedAttributes: [],
+    name: undefined
+  }
+) {
   const kebabName = name || camelToKebabCase(functionComponent.name);
 
   if (customElements.get(kebabName)) {
     if (componentsByUs.includes(kebabName)) {
       HMROverride.set(kebabName, functionComponent);
-      document.dispatchEvent(new CustomEvent('esm-hmr:webact-function-component'));
+      document.dispatchEvent(
+        new CustomEvent('esm-hmr:webact-function-component')
+      );
     } else {
       throw new Error(`
         Some else has already registered <${kebabName}> in the custom element registry.
       `);
     }
   } else {
-    const customElementClass = generateFunctionComponent(functionComponent, { metaUrl, observedAttributes, kebabName });
+    const customElementClass = generateFunctionComponent(functionComponent, {
+      metaUrl,
+      observedAttributes,
+      kebabName
+    });
 
     customElements.define(kebabName, customElementClass);
     componentsByUs.push(kebabName);
