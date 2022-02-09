@@ -15,9 +15,9 @@ const htmlFetches = new Map();
  * @param {{ metaUrl: ?string, observedAttributes: string[] }} options
  * @returns {CustomElementConstructor}
  */
-function generateFunctionComponent(functionalComponent, { metaUrl, observedAttributes, kebabName }) {
+function generateFunctionComponent (functionalComponent, { metaUrl, observedAttributes, kebabName }) {
   return class extends HTMLElement {
-    constructor() {
+    constructor () {
       super();
 
       this._postRender = undefined;
@@ -34,7 +34,7 @@ function generateFunctionComponent(functionalComponent, { metaUrl, observedAttri
       });
     }
 
-    set _html(documentFragment) {
+    set _html (documentFragment) {
       if (!templates.has(kebabName) || this._hmrUpdate) {
         const templateElement = document.createElement('template');
 
@@ -44,35 +44,35 @@ function generateFunctionComponent(functionalComponent, { metaUrl, observedAttri
       }
     }
 
-    get _html() {
+    get _html () {
       return templates.has(kebabName) ? templates.get(kebabName).content.cloneNode(true) : null;
     }
 
-    set _css(cssStyleSheet) {
+    set _css (cssStyleSheet) {
       if (!styleSheets.has(kebabName) || this._hmrUpdate) {
         styleSheets.set(kebabName, cssStyleSheet);
       }
     }
 
-    get _css() {
+    get _css () {
       return styleSheets.has(kebabName) ? styleSheets.get(kebabName) : null;
     }
 
-    get cssPath() {
+    get cssPath () {
       return (
         this._componentPath &&
         this._componentPath.replace(/\.(html|js)/gi, '.css')
       );
     }
 
-    get htmlPath() {
+    get htmlPath () {
       return (
         this._componentPath &&
         this._componentPath.replace(/\.(css|js)/gi, '.html')
       );
     }
 
-    static get observedAttributes() {
+    static get observedAttributes () {
       return observedAttributes;
     }
 
@@ -80,7 +80,7 @@ function generateFunctionComponent(functionalComponent, { metaUrl, observedAttri
      * @param {Record<string, string>} props
      * @param {{ force: boolean }} options
      */
-    async _render(props) {
+    async _render (props) {
       this._rendering = functionalComponent.apply(this.customThis, [props]);
 
       if (this._rendering instanceof Promise) {
@@ -118,11 +118,11 @@ function generateFunctionComponent(functionalComponent, { metaUrl, observedAttri
       }
     }
 
-    get _props() {
+    get _props () {
       return attributesToObject(this.attributes);
     }
 
-    get customThis() {
+    get customThis () {
       return {
         /**
          * @param {string[]} strings
@@ -256,7 +256,7 @@ function generateFunctionComponent(functionalComponent, { metaUrl, observedAttri
       };
     }
 
-    async attributeChangedCallback() {
+    async attributeChangedCallback () {
       if (this._rendering instanceof Promise) {
         await this._rendering;
       }
@@ -273,7 +273,7 @@ function generateFunctionComponent(functionalComponent, { metaUrl, observedAttri
       });
     }
 
-    async connectedCallback() {
+    async connectedCallback () {
       this._sDOM = this.attachShadow({
         mode: 'closed'
       });
@@ -281,7 +281,7 @@ function generateFunctionComponent(functionalComponent, { metaUrl, observedAttri
       this._render(this._props);
     }
 
-    disconnectedCallback() {
+    disconnectedCallback () {
       if (this._deRender) {
         this._deRender();
       }
@@ -290,11 +290,18 @@ function generateFunctionComponent(functionalComponent, { metaUrl, observedAttri
 }
 
 /**
+ * @typedef FunctionComponentOptions
+ * @prop {string} [metaUrl]
+ * @prop {string[]} [observedAttributes]
+ * @prop {string} [name]
+ */
+
+/**
  * @param {Function} functionComponent
- * @param {{ metaUrl: ?string, observedAttributes: string[], name: ?string }} options
+ * @param {FunctionComponentOptions} options
  * @returns {string} Custom element tag name.
  */
-export default function registerFunctionComponent(functionComponent, { metaUrl, observedAttributes, name } = { metaUrl: undefined, observedAttributes: [], name: undefined }) {
+export default function registerFunctionComponent (functionComponent, { metaUrl, observedAttributes, name } = { metaUrl: undefined, observedAttributes: [], name: undefined }) {
   const kebabName = name || camelToKebabCase(functionComponent.name);
 
   if (customElements.get(kebabName)) {
