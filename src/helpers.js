@@ -108,12 +108,6 @@ export function css (strings, ...rest) {
  * @param {any[]} rest
  * @returns {DocumentFragment}
  */
-export function html (strings, ...rest) {
-  const text = Array.isArray(strings) ?
-    strings.reduce((acc, curr, i) => {
-      return acc + (rest[i] ? curr + rest[i] : curr);
-    }, '') :
-    strings;
-
-  return stringToElements(text);
+export function html () {
+  return stringToElements(String.raw(...arguments));
 }
