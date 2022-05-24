@@ -53,15 +53,10 @@ export function stringToElements (string) {
  * @returns {CSSStyleSheet}
  */
  export function modernCSS (strings, ...rest) {
-  const text = Array.isArray(strings) ?
-    strings.reduce((acc, curr, i) => {
-      return acc + (rest[i] ? curr + rest[i] : curr);
-    }, '') :
-    strings;
   const sheet = new CSSStyleSheet();
 
   // @ts-ignore
-  sheet.replace(text);
+  sheet.replace(String.raw(...arguments));
 
   return sheet;
 }
@@ -72,15 +67,8 @@ export function stringToElements (string) {
  * @returns {HTMLStyleElement}
  */
  export function oldCSS (strings, ...rest) {
-  const text = Array.isArray(strings) ?
-    strings.reduce((acc, curr, i) => {
-      return acc + (rest[i] ? curr + rest[i] : curr);
-    }, '') :
-    strings;
   const style = document.createElement('style');
-
-  style.innerText = text;
-
+  style.innerText = String.raw(...arguments);
   return style;
 }
 
