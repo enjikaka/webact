@@ -13,12 +13,12 @@ const lastPropChange = new Map();
 
 /**
  * @param {Function} functionalComponent
- * @param {{ metaUrl: ?string, observedAttributes: string[] }} options
+ * @param {{ metaUrl: ?string, observedAttributes: string[], kebabName?: string, shadowRootMode?: ShadowRootMode }} options
  * @returns {CustomElementConstructor}
  */
 function generateFunctionComponent (
   functionalComponent,
-  { metaUrl, observedAttributes, kebabName }
+  { metaUrl, observedAttributes, kebabName, shadowRootMode = 'closed' }
 ) {
   return class extends HTMLElement {
     constructor () {
@@ -289,7 +289,7 @@ function generateFunctionComponent (
 
     async connectedCallback () {
       this._sDOM = this.attachShadow({
-        mode: 'closed'
+        mode: shadowRootMode
       });
 
       this._render(this._props);
