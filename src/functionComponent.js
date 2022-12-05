@@ -11,14 +11,21 @@ const cssFetches = new Map();
 const htmlFetches = new Map();
 const lastPropChange = new Map();
 
+/** @typedef FunctionComponentOptions
+ * @prop {string} [metaUrl]
+ * @prop {string[]} [observedAttributes]
+ * @prop {string} [name]
+ * @prop {ShadowRootMode} [shadowRootMode]
+ */
+
 /**
  * @param {Function} functionalComponent
- * @param {{ metaUrl: ?string, observedAttributes: string[], kebabName?: string, shadowRootMode?: ShadowRootMode }} options
+ * @param {FunctionComponentOptions} options
  * @returns {CustomElementConstructor}
  */
 function generateFunctionComponent (
   functionalComponent,
-  { metaUrl, observedAttributes, kebabName, shadowRootMode = 'closed' }
+  { metaUrl, observedAttributes, name: kebabName, shadowRootMode }
 ) {
   return class extends HTMLElement {
     constructor () {
@@ -289,7 +296,7 @@ function generateFunctionComponent (
 
     async connectedCallback () {
       this._sDOM = this.attachShadow({
-        mode: shadowRootMode
+        mode: shadowRootMode || 'closed'
       });
 
       this._render(this._props);
@@ -304,23 +311,17 @@ function generateFunctionComponent (
 }
 
 /**
- * @typedef FunctionComponentOptions
- * @prop {string} [metaUrl]
- * @prop {string[]} [observedAttributes]
- * @prop {string} [name]
- */
-
-/**
  * @param {Function} functionComponent
  * @param {FunctionComponentOptions} options
  * @returns {string} Custom element tag name.
  */
 export default function registerFunctionComponent (
   functionComponent,
-  { metaUrl, observedAttributes, name } = {
+  { metaUrl, observedAttributes, name, shadowRootMode } = {
     metaUrl: undefined,
     observedAttributes: [],
-    name: undefined
+    name: undefined,
+    shadowRootMode: 'closed'
   }
 ) {
   const kebabName = name || camelToKebabCase(functionComponent.name);
@@ -340,7 +341,8 @@ export default function registerFunctionComponent (
     const customElementClass = generateFunctionComponent(functionComponent, {
       metaUrl,
       observedAttributes,
-      kebabName
+      name: kebabName,
+      shadowRootMode
     });
 
     customElements.define(kebabName, customElementClass);
