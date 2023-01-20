@@ -52,7 +52,7 @@ export function stringToElements (string) {
  * @param {any[]} rest
  * @returns {CSSStyleSheet}
  */
- export function modernCSS (strings, ...rest) {
+export function modernCSS () {
   const sheet = new CSSStyleSheet();
 
   // @ts-ignore
@@ -66,9 +66,11 @@ export function stringToElements (string) {
  * @param {any[]} rest
  * @returns {HTMLStyleElement}
  */
- export function oldCSS (strings, ...rest) {
+export function oldCSS () {
   const style = document.createElement('style');
+
   style.innerText = String.raw(...arguments);
+
   return style;
 }
 
@@ -81,12 +83,13 @@ export function css (strings, ...rest) {
   let modern = false;
 
   try {
-    const icss = new CSSStyleSheet();
+    // eslint-disable-next-line no-new
+    new CSSStyleSheet();
     modern = true;
   } catch (e) {
     modern = false;
   }
-  
+
   return modern ? modernCSS(strings, ...rest) : oldCSS(strings, ...rest);
 }
 

@@ -202,7 +202,8 @@ function generateFunctionComponent (
             const response = await fetch(path);
             const text = await response.text();
 
-            this.customThis.html([text]);
+            // eslint-disable-next-line no-unused-expressions
+            this.customThis.html`${text}`;
           };
 
           const promise = htmlFetching();
@@ -234,7 +235,8 @@ function generateFunctionComponent (
             const response = await fetch(path);
             const text = await response.text();
 
-            this.customThis.css([text]);
+            // eslint-disable-next-line no-unused-expressions
+            this.customThis.css`${text}`;
 
             cssFetches.delete(kebabName);
           };
