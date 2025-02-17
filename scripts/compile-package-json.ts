@@ -4,15 +4,15 @@ const json = JSON.parse(data);
 const entry = './index.js';
 
 const process = Deno.run({
-  cmd: ["git", "describe", "--tags", "--abbrev=0"], 
+  cmd: ["git", "describe", "--tags", "--abbrev=0"],
   stdout: "piped"
 });
 
 const output = await process.output();
 const version = new TextDecoder().decode(output);
 
-json.version = version.split('v')[1].trim();
-json.exports =  {};
+json.version = version.includes('v') ? version.split('v')[1].trim() : version;
+json.exports = {};
 json.exports['.'] = entry;
 json.browser = entry;
 
@@ -24,4 +24,4 @@ if ('scripts' in json) {
   delete json.scripts;
 }
 
-await Deno.writeTextFile('pkg/package.json', JSON.stringify(json, null , 2));
+await Deno.writeTextFile('pkg/package.json', JSON.stringify(json, null, 2));
