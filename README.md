@@ -214,12 +214,9 @@ This process should be the same for all virtual DOMs and JSX implementations.
 
 Webact is currently running live in production at these sites.
 
-### Saoirse
+### TIDAL - Google Cast Receiver
 
-URL: https://saoir.se
-
-A small website to find music ids across music services.
-This site uses server site rendering with [Wext.js](https://github.com/Vufuzi/wext.js). And uses Webact for all client side component. (Which are pre-filled on the server using Wext.js).
+The Google Cast Receiver for [TIDAL](https://tidal.com) - the UI you see on your TV while casting - is built using this library,
 
 ### Podd-App
 
