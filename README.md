@@ -1,12 +1,15 @@
 # 🛠 Webact 🌎
 
-Webact is a tiny library that helps you create web components in a manner similar to Vue and React. Without the need for heavy tools like Babel and Webpack that cripples your iterative workflow. ⚙
+Webact is a tiny library that helps you create web components in a manner
+similar to Vue and React. Without the need for heavy tools like Babel and
+Webpack that cripples your iterative workflow. ⚙
 
 ## Examples
 
 ### With render method | Like with React class based component
 
-The following will take the result from the render method and put it in ShadomDOM and create a `<my-app>` component.
+The following will take the result from the render method and put it in
+ShadomDOM and create a `<my-app>` component.
 
 ```
 import { Component, registerComponent } from 'https://unpkg.com/webact';
@@ -30,12 +33,14 @@ document.querySelector('#app').innerHTML = `
 `;
 ```
 
-
 ### With HTML and CSS | Like Vue sigle file components
 
-Having HTML, CSS and JS in separate files is kind to both you and all the tools you use! Vue-style, and also the style my team used with Backbone back in the days at TIDAL (read 2015).
+Having HTML, CSS and JS in separate files is kind to both you and all the tools
+you use! Vue-style, and also the style my team used with Backbone back in the
+days at TIDAL (read 2015).
 
-The following will load the HTML file into the components ShadowDOM with the CSS and create a `<my-app>` component.
+The following will load the HTML file into the components ShadowDOM with the CSS
+and create a `<my-app>` component.
 
 ```
 /components
@@ -46,21 +51,21 @@ The following will load the HTML file into the components ShadowDOM with the CSS
 ```
 
 ```js
-import { Component, registerComponent } from 'https://unpkg.com/webact';
+import { Component, registerComponent } from "https://unpkg.com/webact";
 
 class MyApp extends Component {
-  constructor () {
+  constructor() {
     super(import.meta.url);
   }
 
   static get observedAttributes() {
-    return ['to-whom'];
+    return ["to-whom"];
   }
 }
 
 registerComponent(MyApp);
 
-document.querySelector('#app').innerHTML = `
+document.querySelector("#app").innerHTML = `
   <div>
     <my-app to-whom="world"></my-app>
   </div>
@@ -69,7 +74,9 @@ document.querySelector('#app').innerHTML = `
 
 ### With methods | Like React function components
 
-You can create components via functions as well. This is done via the `registerFunctionComponent` helper method exposed. If `observedAttributes` is specified the component will re-render when one of those attributes changes.
+You can create components via functions as well. This is done via the
+`registerFunctionComponent` helper method exposed. If `observedAttributes` is
+specified the component will re-render when one of those attributes changes.
 
 ```js
 registerFunctionComponent(callback: Function, { metaUrl: ?string, observedAttributes: ?string[] })
@@ -96,7 +103,7 @@ Takes a function as input. This function is called on `attributeChangedCallback`
 ```
 
 ```ts
-html(markup: string[])
+html(markup: TemplateStringsArray)
 /*
 Tagged template litteral. Call this with your markup and it will be injected into the shadow DOM of your component.
 */
@@ -110,7 +117,7 @@ If there is a path specified, it will be fetched and used for the markup in the 
 ```
 
 ```ts
-css(styles: string[])
+css(styles: TemplateStringsArray)
 /*
 Tagged template litteral. Call this with your styles and it will be injected as a Constructable Stylesheet into the shadow DOM of you component.
 */
@@ -140,7 +147,7 @@ jQuery like helper method to querying stuff in the shadow dom. An empty string o
 #### Example
 
 ```js
-import { registerFunctionComponent } from 'https://unpkg.com/webact';
+import { registerFunctionComponent } from "https://unpkg.com/webact";
 
 function FancyButton() {
   const { html, css, postRender, $ } = this;
@@ -161,9 +168,9 @@ function FancyButton() {
   `;
 
   postRender(() => {
-    const button = $('button');
+    const button = $("button");
 
-    button.addEventListener('click', () => {}, false);
+    button.addEventListener("click", () => {}, false);
   });
 }
 
@@ -172,16 +179,18 @@ export default registerFunctionComponent(FancyButton);
 
 ### Interop with React and similar
 
-`export default` the result of the `registerComponent` method. This method returns the name of
-the custom element for this component. In the example below that would be `my-app`.
+`export default` the result of the `registerComponent` method. This method
+returns the name of the custom element for this component. In the example below
+that would be `my-app`.
 
 my-app.js:
+
 ```js
-import { Component, registerComponent } from 'https://unpkg.com/webact';
+import { Component, registerComponent } from "https://unpkg.com/webact";
 
 class MyApp extends Component {
   static get observedAttributes() {
-    return ['to-whom'];
+    return ["to-whom"];
   }
 
   render({ toWhom }) {
@@ -195,11 +204,11 @@ export default registerComponent(MyApp);
 then in a React component import and use it like any other React component;
 
 ```js
-import * as React from 'react';
+import * as React from "react";
 
-import MyRealApp from './my-app.js';
+import MyRealApp from "./my-app.js";
 
-export default function MyReactApp () {
+export default function MyReactApp() {
   return (
     <div class="ugly-jsx">
       <MyRealApp to-whom="Jeremy" />
@@ -216,18 +225,22 @@ Webact is currently running live in production at these sites.
 
 ### TIDAL - Google Cast Receiver
 
-The Google Cast Receiver for [TIDAL](https://tidal.com) - the UI you see on your TV while casting - is built using this library,
+The Google Cast Receiver for [TIDAL](https://tidal.com) - the UI you see on your
+TV while casting - is built using this library,
 
 ### Podd-App
 
 URL: https://podd.app
 
-A progressive web app where you can listen to podcasts.
-The site server side render web components (made with Webact) with help from [Wext.js](https://github.com/Vufuzi/wext.js) (bascially just an express with support for sending partials of new pages upon navigation).
+A progressive web app where you can listen to podcasts. The site server side
+render web components (made with Webact) with help from
+[Wext.js](https://github.com/Vufuzi/wext.js) (bascially just an express with
+support for sending partials of new pages upon navigation).
 
 ### Plypp Piano Beta
 
 URL: https://plypp-beta.netlify.com
 
-A piano applicaton with uses sound fonts. A sound font is pretty huge so time to interactive
-is a bit long, sorry about that. Web components here use the functional component pattern of Webact with css and html template string hooks.
+A piano applicaton with uses sound fonts. A sound font is pretty huge so time to
+interactive is a bit long, sorry about that. Web components here use the
+functional component pattern of Webact with css and html template string hooks.

@@ -43,7 +43,7 @@ function generateFunctionComponent (
         functionalComponent = HMROverride.has(kebabName) ?
           HMROverride.get(kebabName) :
           functionalComponent;
-        this._render();
+        this._render(this._props);
       });
     }
 
@@ -93,7 +93,6 @@ function generateFunctionComponent (
 
     /**
      * @param {Record<string, string>} props
-     * @param {{ force: boolean }} options
      */
     async _render (props) {
       this._rendering = functionalComponent.apply(this.customThis, [props]);
@@ -102,38 +101,40 @@ function generateFunctionComponent (
         await this._rendering;
       }
 
-      if (this._css) {
-        if (
-          'adoptedStyleSheets' in this._sDOM &&
-          this._css instanceof CSSStyleSheet
-        ) {
-          requestAnimationFrame(() => {
+      // Consolidate all DOM updates into a single RAF for better performance
+      requestAnimationFrame(() => {
+        // Apply CSS stylesheets
+        if (this._css) {
+          if (
+            'adoptedStyleSheets' in this._sDOM &&
+            this._css instanceof CSSStyleSheet
+          ) {
             this._sDOM.adoptedStyleSheets = [this._css];
-          });
+          }
+
+          if (this._css instanceof HTMLStyleElement) {
+            this._sDOM.appendChild(this._css);
+          }
+        } else if (document.location.href.includes('localhost')) {
+          console.warn(`<${kebabName}>: Missing CSS. Will render without it.`);
         }
 
-        if (this._css instanceof HTMLStyleElement) {
-          this._sDOM.appendChild(this._css);
+        // Apply HTML template
+        if (this._html) {
+          this._sDOM.appendChild(this._html);
+        } else if (document.location.href.includes('localhost')) {
+          console.warn(`<${kebabName}>: Missing HTML. Will render without it.`);
         }
-      } else if (document.location.href.includes('localhost')) {
-        console.warn(`<${kebabName}>: Missing CSS. Will render without it.`);
-      }
 
-      if (this._html) {
-        requestAnimationFrame(() => this._sDOM.appendChild(this._html));
-      } else if (document.location.href.includes('localhost')) {
-        console.warn(`<${kebabName}>: Missing HTML. Will render without it.`);
-      }
-
-      if (this._postRender instanceof Function) {
-        requestAnimationFrame(() => {
+        // Execute post-render callback in next frame to ensure DOM is fully updated
+        if (this._postRender instanceof Function) {
           requestAnimationFrame(() => {
             this._postRender();
             this._hmrUpdate = false;
             this._hasRendered = true;
           });
-        });
-      }
+        }
+      });
     }
 
     get _props () {
@@ -143,7 +144,7 @@ function generateFunctionComponent (
     get customThis () {
       return {
         /**
-         * @param {string[]} strings
+         * @param {TemplateStringsArray} strings
          * @returns {DocumentFragment}
          */
         html: (strings, ...rest) => {
@@ -161,7 +162,7 @@ function generateFunctionComponent (
           return this._html;
         },
         /**
-         * @param {string[]} strings
+         * @param {TemplateStringsArray} strings
          * @returns {CSSStyleSheet}
          */
         css: (strings, ...rest) => {
@@ -181,8 +182,9 @@ function generateFunctionComponent (
         },
         /**
          * @param {string | URL} path
+         * @returns {Promise<void>}
          */
-        useHTML: async path => {
+        useHTML: path => {
           // If another instance of this component is fetching HTML, then don't fetch again. Wait for same HTML file.
           if (htmlFetches.has(kebabName)) {
             return htmlFetches.get(kebabName);
@@ -214,8 +216,9 @@ function generateFunctionComponent (
         },
         /**
          * @param {string | URL} path
+         * @returns {Promise<void>}
          */
-        useCSS: async path => {
+        useCSS: path => {
           // If another instance of this component is fetching CSS, then don't fetch again. Wait for same CSS file.
           if (cssFetches.has(kebabName)) {
             return cssFetches.get(kebabName);
@@ -276,27 +279,29 @@ function generateFunctionComponent (
         await this._rendering;
       }
 
-      requestAnimationFrame(() => {
-        if (this._propsChanged instanceof Function) {
-          const serializedChange = JSON.stringify(attributesToObject(this.attributes));
+      // Only use RAF if we actually have a propsChanged handler
+      if (this._propsChanged instanceof Function) {
+        const serializedChange = JSON.stringify(attributesToObject(this.attributes));
 
-          // Avoid emitting propChanges when no props change, even if the attributeChangedCallback is run.
-          if (lastPropChange.get(kebabName) === serializedChange) {
-            return;
-          }
+        // Avoid emitting propChanges when no props change, even if the attributeChangedCallback is run.
+        if (lastPropChange.get(kebabName) === serializedChange) {
+          return;
+        }
 
+        // Use RAF only for the actual prop change handling
+        requestAnimationFrame(() => {
           this._propsChanged(attributesToObject(this.attributes));
           lastPropChange.set(kebabName, serializedChange);
-        } else if (document.location.href.includes('localhost')) {
-          console.error(`
-            <${kebabName}>: Attribute has changed and you are observing attributes, but not handling them in a propsChanged handler.
-            Remove observedAttributes or or actually use them.
-          `);
-        }
-      });
+        });
+      } else if (document.location.href.includes('localhost')) {
+        console.error(`
+          <${kebabName}>: Attribute has changed and you are observing attributes, but not handling them in a propsChanged handler.
+          Remove observedAttributes or or actually use them.
+        `);
+      }
     }
 
-    async connectedCallback () {
+    connectedCallback () {
       this._sDOM = this.attachShadow({
         mode: shadowRootMode || 'closed'
       });

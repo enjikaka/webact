@@ -48,35 +48,31 @@ export function stringToElements (string) {
 }
 
 /**
- * @param {string[] | string} strings
- * @param {any[]} rest
+ * @param {TemplateStringsArray} strings
+ * @param {...any} rest
  * @returns {CSSStyleSheet}
  */
-export function modernCSS () {
+export function modernCSS(strings, ...rest) {
   const sheet = new CSSStyleSheet();
-
-  sheet.replace(String.raw(...arguments));
-
+  sheet.replace(String.raw(strings, ...rest));
   return sheet;
 }
 
 /**
- * @param {string[] | string} strings
- * @param {any[]} rest
+ * @param {TemplateStringsArray} strings
+ * @param {...any} rest
  * @returns {HTMLStyleElement}
  */
-export function oldCSS () {
+export function oldCSS(strings, ...rest) {
   const style = document.createElement('style');
-
-  style.innerText = String.raw(...arguments);
-
+  style.innerText = String.raw(strings, ...rest);
   return style;
 }
 
 /**
- * @param {string[] | string} strings
+ * @param {TemplateStringsArray} strings
  * @param {any[]} rest
- * @returns {CSSStyleSheet}
+ * @returns {CSSStyleSheet | HTMLStyleElement}
  */
 export function css (strings, ...rest) {
   let modern = false;
@@ -94,10 +90,10 @@ export function css (strings, ...rest) {
 
 /**
  * @export
- * @param {string[] | string} strings
+ * @param {TemplateStringsArray} strings
  * @param {any[]} rest
  * @returns {DocumentFragment}
  */
-export function html () {
-  return stringToElements(String.raw(...arguments));
+export function html (strings, ...rest) {
+  return stringToElements(String.raw(strings, ...rest));
 }

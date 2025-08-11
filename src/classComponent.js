@@ -25,6 +25,15 @@ export class Component extends HTMLElement {
     }
   }
 
+  /**
+   * @abstract
+   * @param {Record<string, string>} props
+   * @returns {string | undefined}
+ */
+  render (props) {
+    return undefined;
+  }
+
   $ (q) {
     return this._sDOM.querySelector(q);
   }
@@ -57,11 +66,9 @@ export class Component extends HTMLElement {
     if (!cssText && this.cssPath) {
       const sheet = await this.fetchCSSAsStyleSheet();
 
-      // @ts-ignore
       this._sDOM.adoptedStyleSheets = [sheet];
     }
-
-    // @ts-ignore
+    
     const htmlText = this.render(this.props);
 
     return stringToElements(htmlText);
@@ -129,8 +136,7 @@ export class Component extends HTMLElement {
 
     let content;
 
-    // @ts-ignore
-    if (this.render) {
+    if (this.render && this.render(this.props) !== undefined) {
       content = await this._render();
     } else if (this.componentPath) {
       content = await this._renderHTMLFile();
@@ -143,12 +149,11 @@ export class Component extends HTMLElement {
     this._sDOM.innerHTML = null;
     this._sDOM.appendChild(content);
 
+    // Use single RAF for componentDidMount to avoid unnecessary frame delays
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        if (this.componentDidMount) {
-          this.componentDidMount();
-        }
-      });
+      if (this.componentDidMount) {
+        this.componentDidMount();
+      }
     });
   }
 }
@@ -162,7 +167,6 @@ export class Component extends HTMLElement {
  * @returns {string} the kebab-case version fo ClassName
  */
 export default function registerComponent (classInstace, { name } = { name: undefined }) {
-  // @ts-ignore
   const componentName = 'is' in classInstace ? classInstace.is : classInstace.prototype.constructor.name;
   const kebabName = name || camelToKebabCase(componentName);
 

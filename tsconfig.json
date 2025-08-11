@@ -1,9 +1,12 @@
 {
   "compilerOptions": {
     "allowJs": true,
+    "checkJs": true,
     "declaration": true,
     "emitDeclarationOnly": true,
-    "outDir": "pkg"
+    "outDir": "pkg",
+    "lib": ["ES2023", "DOM"],
+    "target": "es2023"
   },
   "include": ["src/*"]
 }

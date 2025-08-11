@@ -13,4 +13,4 @@ release:
 
 test: build
 	cp pkg/index.js docs/webact.js
-	http-server docs -p 1444
+	npx http-server docs -p 1444
