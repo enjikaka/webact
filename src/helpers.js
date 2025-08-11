@@ -55,7 +55,6 @@ export function stringToElements (string) {
 export function modernCSS () {
   const sheet = new CSSStyleSheet();
 
-  // @ts-ignore
   sheet.replace(String.raw(...arguments));
 
   return sheet;
