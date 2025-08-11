@@ -225,22 +225,9 @@ Webact is currently running live in production at these sites.
 
 ### TIDAL - Google Cast Receiver
 
-The Google Cast Receiver for [TIDAL](https://tidal.com) - the UI you see on your
-TV while casting - is built using this library,
+The Google Cast Receiver for [TIDAL](https://tidal.com) uses Webact. The UI you
+see on your TV while casting - is built using this library.
 
-### Podd-App
+### [nightcore.app](https://nightcore.app)
 
-URL: https://podd.app
-
-A progressive web app where you can listen to podcasts. The site server side
-render web components (made with Webact) with help from
-[Wext.js](https://github.com/Vufuzi/wext.js) (bascially just an express with
-support for sending partials of new pages upon navigation).
-
-### Plypp Piano Beta
-
-URL: https://plypp-beta.netlify.com
-
-A piano applicaton with uses sound fonts. A sound font is pretty huge so time to
-interactive is a bit long, sorry about that. Web components here use the
-functional component pattern of Webact with css and html template string hooks.
+The popular nightcore-ceeation tool is built using Webact.
