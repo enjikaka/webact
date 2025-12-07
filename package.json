@@ -5,6 +5,10 @@
   "type": "module",
   "module": "index.js",
   "packageManager": "npm@10.9.0",
+  "engines": {
+    "node": "24",
+    "deno": "2.5.6"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/enjikaka/webact.git"
