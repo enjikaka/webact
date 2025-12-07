@@ -68,7 +68,7 @@ export class Component extends HTMLElement {
 
   async fetchHTMLAsDocFrag() {
     if (HTMLCache.has(this.htmlPath)) {
-      return stringToElements(HTMLCache.get(this.htmlPath));
+      return HTMLCache.get(this.htmlPath);
     }
 
     const response = await fetch(this.htmlPath);
@@ -78,10 +78,11 @@ export class Component extends HTMLElement {
       response.headers.get("content-type").includes("text/html")
     ) {
       const text = await response.text();
+      const docFrag = stringToElements(text);
 
-      HTMLCache.set(this.htmlPath, text);
+      HTMLCache.set(this.htmlPath, docFrag);
 
-      return stringToElements(text);
+      return docFrag;
     }
 
     throw new Error("Fetch failed");

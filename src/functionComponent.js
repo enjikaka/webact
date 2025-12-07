@@ -1,11 +1,18 @@
-import { attributesToObject, camelToKebabCase, css, html } from "./helpers.js";
+import {
+  attributesToObject,
+  camelToKebabCase,
+  modernCSS,
+  html,
+} from "./helpers.js";
+
+import { CSSCache, HTMLCache } from "./state.js";
 
 const componentsByUs = [];
 
 const HMROverride = new Map();
 
-const templates = new Map();
-const styleSheets = new Map();
+const htmlFetches = new Map();
+const cssFetches = new Map();
 
 const lastPropChange = new Map();
 
@@ -45,30 +52,29 @@ function _generateFunctionComponen(
       });
     }
 
-    set _html(documentFragment) {
-      if (!templates.has(kebabName) || this._hmrUpdate) {
+    set _html(node) {
+      if (!HTMLCache.has(this.htmlPath) || this._hmrUpdate) {
         const templateElement = document.createElement("template");
 
-        templateElement.content.appendChild(documentFragment);
+        templateElement.content.appendChild(node);
+        const docFrag = templateElement.content;
 
-        templates.set(kebabName, templateElement);
+        HTMLCache.set(this.htmlPath, docFrag);
       }
     }
 
     get _html() {
-      return templates.has(kebabName)
-        ? templates.get(kebabName).content.cloneNode(true)
-        : null;
+      return HTMLCache.has(this.htmlPath) ? HTMLCache.get(this.htmlPath) : null;
     }
 
     set _css(cssStyleSheet) {
-      if (!styleSheets.has(kebabName) || this._hmrUpdate) {
-        styleSheets.set(kebabName, cssStyleSheet);
+      if (!CSSCache.has(this.htmlPath) || this._hmrUpdate) {
+        CSSCache.set(this.htmlPath, cssStyleSheet);
       }
     }
 
     get _css() {
-      return styleSheets.has(kebabName) ? styleSheets.get(kebabName) : null;
+      return CSSCache.has(this.htmlPath) ? CSSCache.get(this.htmlPath) : null;
     }
 
     get cssPath() {
@@ -168,7 +174,7 @@ function _generateFunctionComponen(
             return;
           }
 
-          this._css = css(strings, ...rest);
+          this._css = modernCSS(strings, ...rest);
 
           return this._css;
         },
