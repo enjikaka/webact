@@ -16,10 +16,10 @@ jobs:
         with:
           path: ./pkg
           key: ${{ runner.os }}-build-${{ hashFiles('package.json') }}
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v6
         with:
           node-version: 24
-      - uses: denoland/setup-deno@v1
+      - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.4.3
       - run: npm install
@@ -35,8 +35,8 @@ jobs:
         with:
           path: ./pkg
           key: ${{ runner.os }}-build-${{ hashFiles('package.json') }}
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           node-version: 24
-      - run: ls -la
+      - run: cd ./pkg && ls -la
       - run: npm publish --provenance --ignore-scripts --access public
