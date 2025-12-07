@@ -1,4 +1,4 @@
-import { camelToKebabCase, html, css, attributesToObject } from './helpers.js';
+import { attributesToObject, camelToKebabCase, css, html } from "./helpers.js";
 
 const componentsByUs = [];
 
@@ -7,8 +7,6 @@ const HMROverride = new Map();
 const templates = new Map();
 const styleSheets = new Map();
 
-const cssFetches = new Map();
-const htmlFetches = new Map();
 const lastPropChange = new Map();
 
 /** @typedef FunctionComponentOptions
@@ -23,12 +21,12 @@ const lastPropChange = new Map();
  * @param {FunctionComponentOptions} options
  * @returns {CustomElementConstructor}
  */
-function generateFunctionComponent (
+function _generateFunctionComponen(
   functionalComponent,
-  { metaUrl, observedAttributes, name: kebabName, shadowRootMode }
+  { metaUrl, observedAttributes, name: kebabName, shadowRootMode },
 ) {
   return class extends HTMLElement {
-    constructor () {
+    constructor() {
       super();
 
       this._postRender = undefined;
@@ -38,18 +36,18 @@ function generateFunctionComponent (
 
       this._hasRendered = false;
 
-      document.addEventListener('esm-hmr:webact-function-component', () => {
+      document.addEventListener("esm-hmr:webact-function-component", () => {
         this._hmrUpdate = true;
-        functionalComponent = HMROverride.has(kebabName) ?
-          HMROverride.get(kebabName) :
-          functionalComponent;
+        functionalComponent = HMROverride.has(kebabName)
+          ? HMROverride.get(kebabName)
+          : functionalComponent;
         this._render(this._props);
       });
     }
 
-    set _html (documentFragment) {
+    set _html(documentFragment) {
       if (!templates.has(kebabName) || this._hmrUpdate) {
-        const templateElement = document.createElement('template');
+        const templateElement = document.createElement("template");
 
         templateElement.content.appendChild(documentFragment);
 
@@ -57,44 +55,38 @@ function generateFunctionComponent (
       }
     }
 
-    get _html () {
-      return templates.has(kebabName) ?
-        templates.get(kebabName).content.cloneNode(true) :
-        null;
+    get _html() {
+      return templates.has(kebabName)
+        ? templates.get(kebabName).content.cloneNode(true)
+        : null;
     }
 
-    set _css (cssStyleSheet) {
+    set _css(cssStyleSheet) {
       if (!styleSheets.has(kebabName) || this._hmrUpdate) {
         styleSheets.set(kebabName, cssStyleSheet);
       }
     }
 
-    get _css () {
+    get _css() {
       return styleSheets.has(kebabName) ? styleSheets.get(kebabName) : null;
     }
 
-    get cssPath () {
-      return (
-        this._componentPath &&
-        this._componentPath.replace(/\.(html|js)/gi, '.css')
-      );
+    get cssPath() {
+      return this._componentPath?.replace(/\.(html|js)/gi, ".css");
     }
 
-    get htmlPath () {
-      return (
-        this._componentPath &&
-        this._componentPath.replace(/\.(css|js)/gi, '.html')
-      );
+    get htmlPath() {
+      return this._componentPath?.replace(/\.(css|js)/gi, ".html");
     }
 
-    static get observedAttributes () {
+    static get observedAttributes() {
       return observedAttributes;
     }
 
     /**
      * @param {Record<string, string>} props
      */
-    async _render (props) {
+    async _render(props) {
       this._rendering = functionalComponent.apply(this.customThis, [props]);
 
       if (this._rendering instanceof Promise) {
@@ -106,7 +98,7 @@ function generateFunctionComponent (
         // Apply CSS stylesheets
         if (this._css) {
           if (
-            'adoptedStyleSheets' in this._sDOM &&
+            "adoptedStyleSheets" in this._sDOM &&
             this._css instanceof CSSStyleSheet
           ) {
             this._sDOM.adoptedStyleSheets = [this._css];
@@ -115,14 +107,14 @@ function generateFunctionComponent (
           if (this._css instanceof HTMLStyleElement) {
             this._sDOM.appendChild(this._css);
           }
-        } else if (document.location.href.includes('localhost')) {
+        } else if (document.location.href.includes("localhost")) {
           console.warn(`<${kebabName}>: Missing CSS. Will render without it.`);
         }
 
         // Apply HTML template
         if (this._html) {
           this._sDOM.appendChild(this._html);
-        } else if (document.location.href.includes('localhost')) {
+        } else if (document.location.href.includes("localhost")) {
           console.warn(`<${kebabName}>: Missing HTML. Will render without it.`);
         }
 
@@ -137,11 +129,11 @@ function generateFunctionComponent (
       });
     }
 
-    get _props () {
+    get _props() {
       return attributesToObject(this.attributes);
     }
 
-    get customThis () {
+    get customThis() {
       return {
         /**
          * @param {TemplateStringsArray} strings
@@ -184,7 +176,7 @@ function generateFunctionComponent (
          * @param {string | URL} path
          * @returns {Promise<void>}
          */
-        useHTML: path => {
+        useHTML: (path) => {
           // If another instance of this component is fetching HTML, then don't fetch again. Wait for same HTML file.
           if (htmlFetches.has(kebabName)) {
             return htmlFetches.get(kebabName);
@@ -218,7 +210,7 @@ function generateFunctionComponent (
          * @param {string | URL} path
          * @returns {Promise<void>}
          */
-        useCSS: path => {
+        useCSS: (path) => {
           // If another instance of this component is fetching CSS, then don't fetch again. Wait for same CSS file.
           if (cssFetches.has(kebabName)) {
             return cssFetches.get(kebabName);
@@ -250,38 +242,40 @@ function generateFunctionComponent (
 
           return promise;
         },
-        postRender: method => {
+        postRender: (method) => {
           this._postRender = method;
         },
-        deRender: method => {
+        deRender: (method) => {
           this._deRender = method;
         },
-        propsChanged: method => {
+        propsChanged: (method) => {
           this._propsChanged = method;
         },
-        $: selector => {
-          if (selector === undefined || selector === ':host') {
+        $: (selector) => {
+          if (selector === undefined || selector === ":host") {
             return this;
           }
 
-          if (selector === ':root') {
+          if (selector === ":root") {
             return this._sDOM;
           }
 
           return this._sDOM.querySelector(selector);
         },
-        $$: selector => this._sDOM.querySelectorAll(selector)
+        $$: (selector) => this._sDOM.querySelectorAll(selector),
       };
     }
 
-    async attributeChangedCallback () {
+    async attributeChangedCallback() {
       if (this._rendering instanceof Promise) {
         await this._rendering;
       }
 
       // Only use RAF if we actually have a propsChanged handler
       if (this._propsChanged instanceof Function) {
-        const serializedChange = JSON.stringify(attributesToObject(this.attributes));
+        const serializedChange = JSON.stringify(
+          attributesToObject(this.attributes),
+        );
 
         // Avoid emitting propChanges when no props change, even if the attributeChangedCallback is run.
         if (lastPropChange.get(kebabName) === serializedChange) {
@@ -293,7 +287,7 @@ function generateFunctionComponent (
           this._propsChanged(attributesToObject(this.attributes));
           lastPropChange.set(kebabName, serializedChange);
         });
-      } else if (document.location.href.includes('localhost')) {
+      } else if (document.location.href.includes("localhost")) {
         console.error(`
           <${kebabName}>: Attribute has changed and you are observing attributes, but not handling them in a propsChanged handler.
           Remove observedAttributes or or actually use them.
@@ -301,15 +295,15 @@ function generateFunctionComponent (
       }
     }
 
-    connectedCallback () {
+    connectedCallback() {
       this._sDOM = this.attachShadow({
-        mode: shadowRootMode || 'closed'
+        mode: shadowRootMode || "closed",
       });
 
       this._render(this._props);
     }
 
-    disconnectedCallback () {
+    disconnectedCallback() {
       if (this._deRender) {
         this._deRender();
       }
@@ -322,14 +316,14 @@ function generateFunctionComponent (
  * @param {FunctionComponentOptions} options
  * @returns {string} Custom element tag name.
  */
-export default function registerFunctionComponent (
+export default function registerFunctionComponent(
   functionComponent,
   { metaUrl, observedAttributes, name, shadowRootMode } = {
     metaUrl: undefined,
     observedAttributes: [],
     name: undefined,
-    shadowRootMode: 'closed'
-  }
+    shadowRootMode: "closed",
+  },
 ) {
   const kebabName = name || camelToKebabCase(functionComponent.name);
 
@@ -337,7 +331,7 @@ export default function registerFunctionComponent (
     if (componentsByUs.includes(kebabName)) {
       HMROverride.set(kebabName, functionComponent);
       document.dispatchEvent(
-        new CustomEvent('esm-hmr:webact-function-component')
+        new CustomEvent("esm-hmr:webact-function-component"),
       );
     } else {
       throw new Error(`
@@ -345,11 +339,11 @@ export default function registerFunctionComponent (
       `);
     }
   } else {
-    const customElementClass = generateFunctionComponent(functionComponent, {
+    const customElementClass = _generateFunctionComponen(functionComponent, {
       metaUrl,
       observedAttributes,
       name: kebabName,
-      shadowRootMode
+      shadowRootMode,
     });
 
     customElements.define(kebabName, customElementClass);

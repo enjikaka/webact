@@ -4,8 +4,8 @@
  * @param {string} str kebab-cased string
  * @returns {string} camelCased string
  */
-export function kebabToCamelCase (str) {
-  return str.replace(/(-)([a-z])/g, g => g[1].toUpperCase());
+export function kebabToCamelCase(str) {
+  return str.replace(/(-)([a-z])/g, (g) => g[1].toUpperCase());
 }
 
 /**
@@ -14,8 +14,8 @@ export function kebabToCamelCase (str) {
  * @param {string} str camelCased string
  * @returns {string} kebab-cased string
  */
-export function camelToKebabCase (str) {
-  return str.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase();
+export function camelToKebabCase(str) {
+  return str.replace(/([a-z])([A-Z])/g, "$1-$2").toLowerCase();
 }
 
 /**
@@ -25,16 +25,16 @@ export function camelToKebabCase (str) {
  * @param {NamedNodeMap} attributes Element.attributes
  * @returns {object} Object with camelCased keys
  */
-export function attributesToObject (attributes) {
-  return attributes ?
-    Array.from(attributes).reduce(
-      (cur, { localName, value }) => ({
-        ...cur,
-        [kebabToCamelCase(localName)]: value
-      }),
-      {}
-    ) :
-    {};
+export function attributesToObject(attributes) {
+  return attributes
+    ? Array.from(attributes).reduce(
+        (acc, { localName, value }) =>
+          Object.assign(acc, {
+            [kebabToCamelCase(localName)]: value,
+          }),
+        {},
+      )
+    : {};
 }
 
 /**
@@ -43,7 +43,7 @@ export function attributesToObject (attributes) {
  * @param {string} string HTML in string form
  * @returns {DocumentFragment} Nodes parsed from the HTML string
  */
-export function stringToElements (string) {
+export function stringToElements(string) {
   return document.createRange().createContextualFragment(string);
 }
 
@@ -64,7 +64,7 @@ export function modernCSS(strings, ...rest) {
  * @returns {HTMLStyleElement}
  */
 export function oldCSS(strings, ...rest) {
-  const style = document.createElement('style');
+  const style = document.createElement("style");
   style.innerText = String.raw(strings, ...rest);
   return style;
 }
@@ -74,14 +74,14 @@ export function oldCSS(strings, ...rest) {
  * @param {any[]} rest
  * @returns {CSSStyleSheet | HTMLStyleElement}
  */
-export function css (strings, ...rest) {
+export function css(strings, ...rest) {
   let modern = false;
 
   try {
     // eslint-disable-next-line no-new
     new CSSStyleSheet();
     modern = true;
-  } catch (e) {
+  } catch (_e) {
     modern = false;
   }
 
@@ -94,6 +94,6 @@ export function css (strings, ...rest) {
  * @param {any[]} rest
  * @returns {DocumentFragment}
  */
-export function html (strings, ...rest) {
+export function html(strings, ...rest) {
   return stringToElements(String.raw(strings, ...rest));
 }

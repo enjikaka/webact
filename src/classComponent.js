@@ -1,29 +1,26 @@
 import {
   attributesToObject,
   camelToKebabCase,
-  stringToElements
-} from './helpers.js';
+  stringToElements,
+} from "./helpers.js";
 
-/** @type {Map<string, CSSStyleSheet>} */
-const CSSCache = new Map();
-/** @type {Map<string, string>} */
-const HTMLCache = new Map();
+import { CSSCache, HTMLCache } from "./state.js";
 
 export class Component extends HTMLElement {
-  constructor (componentPath) {
+  constructor(componentPath) {
     super();
 
     if (componentPath) {
       this.componentPath = componentPath;
     } else {
       console.warn(
-        'You did not send a path to the super method in your constructor. Thus CSS and HTML cannot be read for this component.',
-        this
+        "You did not send a path to the super method in your constructor. Thus CSS and HTML cannot be read for this component.",
+        this,
       );
       console.warn(
-        'If shipping for modern browser, then call super with import.meta.url. If not, specify a path that is similar to import.meta.url yourself.'
+        "If shipping for modern browser, then call super with import.meta.url. If not, specify a path that is similar to import.meta.url yourself.",
       );
-      console.warn('Should be the path to the component you are making.');
+      console.warn("Should be the path to the component you are making.");
     }
   }
 
@@ -33,27 +30,23 @@ export class Component extends HTMLElement {
    * @returns {string | undefined}
    */
   // eslint-disable-next-line no-unused-vars
-  render (_props) {
+  render(_props) {
     return undefined;
   }
 
-  $ (q) {
+  $(q) {
     return this._sDOM.querySelector(q);
   }
 
-  get cssPath () {
-    return (
-      this.componentPath && this.componentPath.replace(/\.(html|js)/gi, '.css')
-    );
+  get cssPath() {
+    return this.componentPath?.replace(/\.(html|js)/gi, ".css");
   }
 
-  get htmlPath () {
-    return (
-      this.componentPath && this.componentPath.replace(/\.(css|js)/gi, '.html')
-    );
+  get htmlPath() {
+    return this.componentPath?.replace(/\.(css|js)/gi, ".html");
   }
 
-  get props () {
+  get props() {
     return attributesToObject(this.attributes);
   }
 
@@ -63,7 +56,7 @@ export class Component extends HTMLElement {
    *
    * @returns {Promise<DocumentFragment>}
    */
-  async _render () {
+  async _render() {
     const sheet = await this.fetchCSSAsStyleSheet();
 
     this._sDOM.adoptedStyleSheets = [sheet];
@@ -73,7 +66,7 @@ export class Component extends HTMLElement {
     return stringToElements(htmlText);
   }
 
-  async fetchHTMLAsDocFrag () {
+  async fetchHTMLAsDocFrag() {
     if (HTMLCache.has(this.htmlPath)) {
       return stringToElements(HTMLCache.get(this.htmlPath));
     }
@@ -82,7 +75,7 @@ export class Component extends HTMLElement {
 
     if (
       response.ok &&
-      response.headers.get('content-type').includes('text/html')
+      response.headers.get("content-type").includes("text/html")
     ) {
       const text = await response.text();
 
@@ -91,10 +84,10 @@ export class Component extends HTMLElement {
       return stringToElements(text);
     }
 
-    throw new Error('Fetch failed');
+    throw new Error("Fetch failed");
   }
 
-  async fetchCSSAsStyleSheet () {
+  async fetchCSSAsStyleSheet() {
     if (CSSCache.has(this.cssPath)) {
       return CSSCache.get(this.cssPath);
     }
@@ -104,7 +97,7 @@ export class Component extends HTMLElement {
 
     if (
       response.ok &&
-      response.headers.get('content-type').includes('text/css')
+      response.headers.get("content-type").includes("text/css")
     ) {
       const text = await response.text();
 
@@ -123,23 +116,22 @@ export class Component extends HTMLElement {
    *
    * @returns {Promise<Node>}
    */
-  async _renderHTMLFile () {
+  async _renderHTMLFile() {
     const [docFrag, sheet] = await Promise.all([
       this.fetchHTMLAsDocFrag(),
-      this.fetchCSSAsStyleSheet()
+      this.fetchCSSAsStyleSheet(),
     ]);
 
-    // @ts-ignore
     this._sDOM.adoptedStyleSheets = [sheet];
 
     return docFrag.cloneNode(true);
   }
 
   // Kinda like Reacts componentDidMount
-  componentDidMount () {}
+  componentDidMount() {}
 
-  async connectedCallback () {
-    this._sDOM = this.attachShadow({ mode: 'closed' });
+  async connectedCallback() {
+    this._sDOM = this.attachShadow({ mode: "closed" });
 
     let content;
 
@@ -149,11 +141,11 @@ export class Component extends HTMLElement {
       content = await this._renderHTMLFile();
     } else {
       console.error(
-        'No render function or component path found for static html/css.'
+        "No render function or component path found for static html/css.",
       );
     }
 
-    this._sDOM.innerHTML = '';
+    this._sDOM.innerHTML = "";
     this._sDOM.appendChild(content);
 
     // Use single RAF for componentDidMount to avoid unnecessary frame delays
@@ -171,14 +163,14 @@ export class Component extends HTMLElement {
  * @param {{ name: ?string }} options
  * @returns {string} the kebab-case version fo ClassName
  */
-export default function registerComponent (
+export default function registerComponent(
   classInstace,
-  { name } = { name: undefined }
+  { name } = { name: undefined },
 ) {
   const componentName =
-    'is' in classInstace ?
-      classInstace.is :
-      classInstace.prototype.constructor.name;
+    "is" in classInstace
+      ? classInstace.is
+      : classInstace.prototype.constructor.name;
   const kebabName = name || camelToKebabCase(componentName);
 
   customElements.define(kebabName, classInstace);
