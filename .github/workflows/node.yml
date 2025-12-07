@@ -1,0 +1,23 @@
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/cache@v4
+        env:
+          cache-name: build
+        with:
+          path: ./pkg
+          key: ${{ runner.os }}-build-${{ hashFiles('package.json') }}
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 24
+      - uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.16.3
+      - run: npm install
+      - run: make build
