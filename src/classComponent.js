@@ -4,8 +4,10 @@ import {
   stringToElements
 } from './helpers.js';
 
-const ComponentCache = {};
-const CSSCache = {};
+/** @type {Map<string, CSSStyleSheet>} */
+const CSSCache = new Map();
+/** @type {Map<string, string>} */
+const HTMLCache = new Map();
 
 export class Component extends HTMLElement {
   constructor (componentPath) {
@@ -27,10 +29,11 @@ export class Component extends HTMLElement {
 
   /**
    * @abstract
-   * @param {Record<string, string>} props
+   * @param {Record<string, string>} _props
    * @returns {string | undefined}
- */
-  render (props) {
+   */
+  // eslint-disable-next-line no-unused-vars
+  render (_props) {
     return undefined;
   }
 
@@ -61,24 +64,29 @@ export class Component extends HTMLElement {
    * @returns {Promise<DocumentFragment>}
    */
   async _render () {
-    const cssText = CSSCache[this.cssPath];
+    const sheet = await this.fetchCSSAsStyleSheet();
 
-    if (!cssText && this.cssPath) {
-      const sheet = await this.fetchCSSAsStyleSheet();
+    this._sDOM.adoptedStyleSheets = [sheet];
 
-      this._sDOM.adoptedStyleSheets = [sheet];
-    }
-    
     const htmlText = this.render(this.props);
 
     return stringToElements(htmlText);
   }
 
   async fetchHTMLAsDocFrag () {
+    if (HTMLCache.has(this.htmlPath)) {
+      return stringToElements(HTMLCache.get(this.htmlPath));
+    }
+
     const response = await fetch(this.htmlPath);
 
-    if (response.ok) {
+    if (
+      response.ok &&
+      response.headers.get('content-type').includes('text/html')
+    ) {
       const text = await response.text();
+
+      HTMLCache.set(this.htmlPath, text);
 
       return stringToElements(text);
     }
@@ -87,17 +95,22 @@ export class Component extends HTMLElement {
   }
 
   async fetchCSSAsStyleSheet () {
+    if (CSSCache.has(this.cssPath)) {
+      return CSSCache.get(this.cssPath);
+    }
+
     const sheet = new CSSStyleSheet();
     const response = await fetch(this.cssPath);
 
     if (
       response.ok &&
-      response.headers.get('content-type').indexOf('text/css') !== -1
+      response.headers.get('content-type').includes('text/css')
     ) {
       const text = await response.text();
 
-      // @ts-ignore
       await sheet.replace(text);
+
+      CSSCache.set(this.cssPath, sheet);
     }
 
     return sheet;
@@ -111,16 +124,10 @@ export class Component extends HTMLElement {
    * @returns {Promise<Node>}
    */
   async _renderHTMLFile () {
-    const componentId = btoa(this.componentPath);
-
-    if (!ComponentCache[componentId]) {
-      ComponentCache[componentId] = Promise.all([
-        this.fetchHTMLAsDocFrag(),
-        this.fetchCSSAsStyleSheet()
-      ]);
-    }
-
-    const [docFrag, sheet] = await ComponentCache[componentId];
+    const [docFrag, sheet] = await Promise.all([
+      this.fetchHTMLAsDocFrag(),
+      this.fetchCSSAsStyleSheet()
+    ]);
 
     // @ts-ignore
     this._sDOM.adoptedStyleSheets = [sheet];
@@ -136,7 +143,7 @@ export class Component extends HTMLElement {
 
     let content;
 
-    if (this.render && this.render(this.props) !== undefined) {
+    if (this.render !== Component.prototype.render) {
       content = await this._render();
     } else if (this.componentPath) {
       content = await this._renderHTMLFile();
@@ -146,15 +153,13 @@ export class Component extends HTMLElement {
       );
     }
 
-    this._sDOM.innerHTML = null;
+    this._sDOM.innerHTML = '';
     this._sDOM.appendChild(content);
 
     // Use single RAF for componentDidMount to avoid unnecessary frame delays
-    requestAnimationFrame(() => {
-      if (this.componentDidMount) {
-        this.componentDidMount();
-      }
-    });
+    if (this.componentDidMount) {
+      queueMicrotask(() => this.componentDidMount());
+    }
   }
 }
 
@@ -166,14 +171,17 @@ export class Component extends HTMLElement {
  * @param {{ name: ?string }} options
  * @returns {string} the kebab-case version fo ClassName
  */
-export default function registerComponent (classInstace, { name } = { name: undefined }) {
-  const componentName = 'is' in classInstace ? classInstace.is : classInstace.prototype.constructor.name;
+export default function registerComponent (
+  classInstace,
+  { name } = { name: undefined }
+) {
+  const componentName =
+    'is' in classInstace ?
+      classInstace.is :
+      classInstace.prototype.constructor.name;
   const kebabName = name || camelToKebabCase(componentName);
 
-  customElements.define(
-    kebabName,
-    classInstace
-  );
+  customElements.define(kebabName, classInstace);
 
   return kebabName;
 }
