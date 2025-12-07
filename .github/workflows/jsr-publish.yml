@@ -1,5 +1,6 @@
 name: Publish to JSR
 on:
+  workflow_dispatch:
   release:
     types: [created]
 
