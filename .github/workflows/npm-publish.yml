@@ -38,4 +38,5 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 24
-      - run: npm publish --provenance --ignore-scripts ./pkg
+      - run: cd ./pkg
+      - run: npm publish --provenance --ignore-scripts --access public
