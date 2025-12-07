@@ -6,7 +6,7 @@
   "module": "index.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/enjikaka/webact"
+    "url": "git+https://github.com/enjikaka/webact.git"
   },
   "scripts": {
     "lint:js": "biome lint src/"
