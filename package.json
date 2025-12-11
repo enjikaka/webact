@@ -3,7 +3,6 @@
   "version": "0.2.24",
   "description": "A framework for efficiently handling web components",
   "type": "module",
-  "module": "index.js",
   "packageManager": "npm@10.9.0",
   "engines": {
     "node": "24",

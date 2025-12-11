@@ -1,8 +1,8 @@
 import {
   attributesToObject,
   camelToKebabCase,
-  modernCSS,
   html,
+  modernCSS,
 } from "./helpers.js";
 
 import { CSSCache, HTMLCache } from "./state.js";
@@ -102,24 +102,25 @@ function _generateFunctionComponen(
       // Consolidate all DOM updates into a single RAF for better performance
       requestAnimationFrame(() => {
         // Apply CSS stylesheets
-        if (this._css) {
+        if (CSSCache.has(this.cssPath)) {
           if (
-            "adoptedStyleSheets" in this._sDOM &&
-            this._css instanceof CSSStyleSheet
+            "adoptedStyleSheets" in this._sDOM
           ) {
-            this._sDOM.adoptedStyleSheets = [this._css];
+            this._sDOM.adoptedStyleSheets = [CSSCache.get(this.cssPath)];
           }
 
+          /* TODO: Make it work with old style element again maybe?
           if (this._css instanceof HTMLStyleElement) {
             this._sDOM.appendChild(this._css);
           }
+            */
         } else if (document.location.href.includes("localhost")) {
           console.warn(`<${kebabName}>: Missing CSS. Will render without it.`);
         }
 
         // Apply HTML template
-        if (this._html) {
-          this._sDOM.appendChild(this._html);
+        if (HTMLCache.has(this.htmlPath)) {
+          this._sDOM.appendChild(HTMLCache.get(this.htmlPath).cloneNode(true));
         } else if (document.location.href.includes("localhost")) {
           console.warn(`<${kebabName}>: Missing HTML. Will render without it.`);
         }
@@ -148,16 +149,16 @@ function _generateFunctionComponen(
         html: (strings, ...rest) => {
           if (
             // A template has already been provided. Only allowed once. Ignore subsequent attempts.
-            this._html !== null &&
+            HTMLCache.has(this.htmlPath) &&
             // HMR is an expection though.
             this._hmrUpdate === false
           ) {
             return;
           }
 
-          this._html = html(strings, ...rest);
+          HTMLCache.set(this.htmlPath, html(strings, ...rest));
 
-          return this._html;
+          return HTMLCache.get(this.htmlPath);
         },
         /**
          * @param {TemplateStringsArray} strings
@@ -167,16 +168,16 @@ function _generateFunctionComponen(
           // A stylesheet has already been provided. Only allowed once. Ignore subsequent attempts.
           if (
             // A template has already been provided. Only allowed once. Ignore subsequent attempts.
-            this._css !== null &&
+            CSSCache.has(this.cssPath) &&
             // HMR is an expection though.
             this._hmrUpdate === false
           ) {
             return;
           }
 
-          this._css = modernCSS(strings, ...rest);
+          CSSCache.set(this.cssPath, modernCSS(strings, ...rest));
 
-          return this._css;
+          return CSSCache.get(this.cssPath);
         },
         /**
          * @param {string | URL} path
@@ -204,6 +205,13 @@ function _generateFunctionComponen(
 
             // eslint-disable-next-line no-unused-expressions
             this.customThis.html`${text}`;
+
+            htmlFetches.delete(kebabName);
+
+            const fragment = document.createRange().createContextualFragment(
+              text,
+            );
+            HTMLCache.set(this.htmlPath, fragment);
           };
 
           const promise = htmlFetching();
@@ -236,8 +244,7 @@ function _generateFunctionComponen(
             const response = await fetch(path);
             const text = await response.text();
 
-            // eslint-disable-next-line no-unused-expressions
-            this.customThis.css`${text}`;
+            CSSCache.set(this.cssPath, modernCSS`${text}`);
 
             cssFetches.delete(kebabName);
           };

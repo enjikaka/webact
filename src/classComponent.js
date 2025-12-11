@@ -168,10 +168,9 @@ export default function registerComponent(
   classInstace,
   { name } = { name: undefined },
 ) {
-  const componentName =
-    "is" in classInstace
-      ? classInstace.is
-      : classInstace.prototype.constructor.name;
+  const componentName = "is" in classInstace
+    ? classInstace.is
+    : classInstace.prototype.constructor.name;
   const kebabName = name || camelToKebabCase(componentName);
 
   customElements.define(kebabName, classInstace);
