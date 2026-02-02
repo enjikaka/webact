@@ -1,5 +1,5 @@
 {
   "name": "@enjikaka/webact",
-  "version": "0.2.25",
+  "version": "0.2.26-beta.1",
   "exports": "./src/index.js"
 }
