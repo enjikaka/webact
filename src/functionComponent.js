@@ -95,6 +95,7 @@ function _generateFunctionComponen(
      * @param {Record<string, string>} props
      */
     async _render(props) {
+      this._events?.offAll();
       this._rendering = functionalComponent.apply(this.customThis, [props]);
 
       if (this._rendering instanceof Promise) {

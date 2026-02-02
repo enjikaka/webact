@@ -67,6 +67,7 @@ export class Component extends HTMLElement {
    * @returns {Promise<DocumentFragment>}
    */
   async _render() {
+    this._events?.offAll();
     const sheet = await this.fetchCSSAsStyleSheet();
 
     this._sDOM.adoptedStyleSheets = [sheet];
