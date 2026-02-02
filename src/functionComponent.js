@@ -69,7 +69,7 @@ function _generateFunctionComponen(
      */
     get _html() {
       return HTMLCache.has(this.htmlPath)
-        ? HTMLCache.get(this.htmlPath).cloneNode(true)
+        ? HTMLCache.get(this.htmlPath).content.cloneNode(true)
         : null;
     }
 
@@ -125,7 +125,9 @@ function _generateFunctionComponen(
 
         // Apply HTML template
         if (HTMLCache.has(this.htmlPath)) {
-          this._sDOM.appendChild(HTMLCache.get(this.htmlPath).cloneNode(true));
+          this._sDOM.appendChild(
+            HTMLCache.get(this.htmlPath).content.cloneNode(true),
+          );
         } else if (document.location.href.includes("localhost")) {
           console.warn(`<${kebabName}>: Missing HTML. Will render without it.`);
         }
@@ -170,7 +172,7 @@ function _generateFunctionComponen(
 
           HTMLCache.set(this.htmlPath, template);
 
-          return HTMLCache.get(this.htmlPath).cloneNode(true);
+          return HTMLCache.get(this.htmlPath).content.cloneNode(true);
         },
         /**
          * @param {TemplateStringsArray} strings

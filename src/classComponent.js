@@ -88,7 +88,7 @@ export class Component extends HTMLElement {
    */
   async fetchHTMLAsDocFrag() {
     if (HTMLCache.has(this.htmlPath)) {
-      return HTMLCache.get(this.htmlPath).cloneNode(true);
+      return HTMLCache.get(this.htmlPath).content.cloneNode(true);
     }
 
     const response = await fetch(this.htmlPath);
