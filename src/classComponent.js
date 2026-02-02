@@ -1,6 +1,7 @@
 import {
   attributesToObject,
   camelToKebabCase,
+  EventHub,
   stringToElements,
 } from "./helpers.js";
 
@@ -34,6 +35,15 @@ export class Component extends HTMLElement {
     return undefined;
   }
 
+  /**
+   * @abstract
+   * @returns {void}
+   */
+  // eslint-disable-next-line no-unused-vars
+  deRender() {
+    return;
+  }
+
   $(q) {
     return this._sDOM.querySelector(q);
   }
@@ -57,6 +67,7 @@ export class Component extends HTMLElement {
    * @returns {Promise<DocumentFragment>}
    */
   async _render() {
+    this._events?.offAll();
     const sheet = await this.fetchCSSAsStyleSheet();
 
     this._sDOM.adoptedStyleSheets = [sheet];
@@ -64,6 +75,12 @@ export class Component extends HTMLElement {
     const htmlText = this.render(this.props);
 
     return stringToElements(htmlText);
+  }
+
+  _deRender() {
+    if (this.deRender) {
+      this.deRender();
+    }
   }
 
   async fetchHTMLAsDocFrag() {
@@ -131,8 +148,24 @@ export class Component extends HTMLElement {
   // Kinda like Reacts componentDidMount
   componentDidMount() {}
 
+  /**
+   * @param {string} type
+   * @param {string} selector
+   * @param {EventListener} fn
+   * @param {EventListenerOptions} options
+   * @returns
+   */
+  on(type, selector, fn, options) {
+    return this._events.on(type, selector, fn, options);
+  }
+
+  offAll() {
+    this._events.offAll();
+  }
+
   async connectedCallback() {
     this._sDOM = this.attachShadow({ mode: "closed" });
+    this._events = new EventHub(this._sDOM);
 
     let content;
 
@@ -153,6 +186,11 @@ export class Component extends HTMLElement {
     if (this.componentDidMount) {
       queueMicrotask(() => this.componentDidMount());
     }
+  }
+
+  disconnectedCallback() {
+    this._events?.offAll();
+    if (this._deRender) this._deRender();
   }
 }
 
