@@ -59,14 +59,18 @@ function _generateFunctionComponen(
         const templateElement = document.createElement("template");
 
         templateElement.content.appendChild(node);
-        const docFrag = templateElement.content;
 
-        HTMLCache.set(this.htmlPath, docFrag);
+        HTMLCache.set(this.htmlPath, templateElement);
       }
     }
 
+    /**
+     * @returns {Node}
+     */
     get _html() {
-      return HTMLCache.has(this.htmlPath) ? HTMLCache.get(this.htmlPath) : null;
+      return HTMLCache.has(this.htmlPath)
+        ? HTMLCache.get(this.htmlPath).cloneNode(true)
+        : null;
     }
 
     set _css(cssStyleSheet) {
@@ -149,7 +153,7 @@ function _generateFunctionComponen(
       this._customThis = {
         /**
          * @param {TemplateStringsArray} strings
-         * @returns {DocumentFragment}
+         * @returns {Node}
          */
         html: (strings, ...rest) => {
           if (
@@ -161,9 +165,12 @@ function _generateFunctionComponen(
             return;
           }
 
-          HTMLCache.set(this.htmlPath, html(strings, ...rest));
+          const template = document.createElement("template");
+          template.innerHTML = String.raw(strings, ...rest);
 
-          return HTMLCache.get(this.htmlPath);
+          HTMLCache.set(this.htmlPath, template);
+
+          return HTMLCache.get(this.htmlPath).cloneNode(true);
         },
         /**
          * @param {TemplateStringsArray} strings
@@ -213,10 +220,10 @@ function _generateFunctionComponen(
 
             htmlFetches.delete(kebabName);
 
-            const fragment = document
-              .createRange()
-              .createContextualFragment(text);
-            HTMLCache.set(this.htmlPath, fragment);
+            const template = document.createElement("template");
+            template.innerHTML = text;
+
+            HTMLCache.set(this.htmlPath, template);
           };
 
           const promise = htmlFetching();
