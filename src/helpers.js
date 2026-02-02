@@ -97,3 +97,43 @@ export function css(strings, ...rest) {
 export function html(strings, ...rest) {
   return stringToElements(String.raw(strings, ...rest));
 }
+
+export class EventHub {
+  /** @param {ShadowRoot|HTMLElement} root */
+  constructor(root) {
+    this.root = root;
+    this.byType = new Map(); // type -> array of {selector, fn, options}
+  }
+
+  on(type, selector, fn, options) {
+    if (!this.byType.has(type)) {
+      this.byType.set(type, []);
+      // Attach ONCE per type. The listener is "this" (handleEvent).
+      this.root.addEventListener(type, this, options);
+    }
+    this.byType.get(type).push({ selector, fn });
+  }
+
+  offAll() {
+    for (const type of this.byType.keys()) {
+      this.root.removeEventListener(type, this);
+    }
+    this.byType.clear();
+  }
+
+  handleEvent(event) {
+    const list = this.byType.get(event.type);
+    if (!list) return;
+
+    // Event delegation: walk from target upwards.
+    for (const { selector, fn } of list) {
+      const matched = event.target?.closest?.(selector);
+      if (
+        matched &&
+        (this.root === matched.getRootNode?.() || this.root.contains(matched))
+      ) {
+        fn.call(matched, event); // context = matched element (often what you want)
+      }
+    }
+  }
+}

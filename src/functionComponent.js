@@ -1,6 +1,7 @@
 import {
   attributesToObject,
   camelToKebabCase,
+  EventHub,
   html,
   modernCSS,
 } from "./helpers.js";
@@ -40,6 +41,7 @@ function _generateFunctionComponen(
       this._propsChanged = undefined;
       this._hmrUpdate = false;
       this._componentPath = metaUrl;
+      this._customThis = null;
 
       this._hasRendered = false;
 
@@ -103,9 +105,7 @@ function _generateFunctionComponen(
       requestAnimationFrame(() => {
         // Apply CSS stylesheets
         if (CSSCache.has(this.cssPath)) {
-          if (
-            "adoptedStyleSheets" in this._sDOM
-          ) {
+          if ("adoptedStyleSheets" in this._sDOM) {
             this._sDOM.adoptedStyleSheets = [CSSCache.get(this.cssPath)];
           }
 
@@ -141,7 +141,11 @@ function _generateFunctionComponen(
     }
 
     get customThis() {
-      return {
+      if (this._customThis) {
+        return this._customThis;
+      }
+
+      this._customThis = {
         /**
          * @param {TemplateStringsArray} strings
          * @returns {DocumentFragment}
@@ -208,9 +212,9 @@ function _generateFunctionComponen(
 
             htmlFetches.delete(kebabName);
 
-            const fragment = document.createRange().createContextualFragment(
-              text,
-            );
+            const fragment = document
+              .createRange()
+              .createContextualFragment(text);
             HTMLCache.set(this.htmlPath, fragment);
           };
 
@@ -255,15 +259,27 @@ function _generateFunctionComponen(
 
           return promise;
         },
+        /**
+         * @param {Function} method
+         */
         postRender: (method) => {
           this._postRender = method;
         },
+        /**
+         * @param {Function} method
+         */
         deRender: (method) => {
           this._deRender = method;
         },
+        /**
+         * @param {Function} method
+         */
         propsChanged: (method) => {
           this._propsChanged = method;
         },
+        /**
+         * @param {string} selector
+         */
         $: (selector) => {
           if (selector === undefined || selector === ":host") {
             return this;
@@ -275,8 +291,22 @@ function _generateFunctionComponen(
 
           return this._sDOM.querySelector(selector);
         },
+        /**
+         * @param {string} selector
+         */
         $$: (selector) => this._sDOM.querySelectorAll(selector),
+        /**
+         * @param {string} type
+         * @param {string} selector
+         * @param {EventListener} fn
+         * @param {EventListenerOptions} options
+         */
+        on: (type, selector, fn, options) =>
+          this._events.on(type, selector, fn, options),
+        offAll: () => this._events.offAll(),
       };
+
+      return this._customThis;
     }
 
     async attributeChangedCallback() {
@@ -312,11 +342,14 @@ function _generateFunctionComponen(
       this._sDOM = this.attachShadow({
         mode: shadowRootMode || "closed",
       });
+      this._events = new EventHub(this._sDOM);
 
       this._render(this._props);
     }
 
     disconnectedCallback() {
+      this._events?.offAll();
+
       if (this._deRender) {
         this._deRender();
       }
