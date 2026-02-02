@@ -83,9 +83,12 @@ export class Component extends HTMLElement {
     }
   }
 
+  /**
+   * @returns {Promise<Node>}
+   */
   async fetchHTMLAsDocFrag() {
     if (HTMLCache.has(this.htmlPath)) {
-      return HTMLCache.get(this.htmlPath);
+      return HTMLCache.get(this.htmlPath).cloneNode(true);
     }
 
     const response = await fetch(this.htmlPath);
@@ -95,9 +98,11 @@ export class Component extends HTMLElement {
       response.headers.get("content-type").includes("text/html")
     ) {
       const text = await response.text();
-      const docFrag = stringToElements(text);
+      const template = document.createElement("template");
+      template.innerHTML = text;
+      const docFrag = template.content;
 
-      HTMLCache.set(this.htmlPath, docFrag);
+      HTMLCache.set(this.htmlPath, template);
 
       return docFrag;
     }
