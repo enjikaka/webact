@@ -42,6 +42,7 @@ function _generateFunctionComponen(
       this._hmrUpdate = false;
       this._componentPath = metaUrl;
       this._customThis = null;
+      this._cacheKeyId = Math.random().toString(36).substr(2, 9);
 
       this._hasRendered = false;
 
@@ -84,11 +85,13 @@ function _generateFunctionComponen(
     }
 
     get cssPath() {
-      return this._componentPath?.replace(/\.(html|js)/gi, ".css");
+      const basePath = this._componentPath?.replace(/\.(html|js)/gi, ".css");
+      return basePath || `__component_${kebabName}_${this._cacheKeyId}__.css`;
     }
 
     get htmlPath() {
-      return this._componentPath?.replace(/\.(css|js)/gi, ".html");
+      const basePath = this._componentPath?.replace(/\.(css|js)/gi, ".html");
+      return basePath || `__component_${kebabName}_${this._cacheKeyId}__.html`;
     }
 
     static get observedAttributes() {
