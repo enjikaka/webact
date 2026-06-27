@@ -1,0 +1,9 @@
+{
+  "features": {
+    "ghcr.io/devcontainers-community/features/deno:1": {
+      "version": "1.2.2",
+      "resolved": "ghcr.io/devcontainers-community/features/deno@sha256:159a0943baea16f344b617626ee8612e243ff9e9e13e0c5670b89bcdecd1b775",
+      "integrity": "sha256:159a0943baea16f344b617626ee8612e243ff9e9e13e0c5670b89bcdecd1b775"
+    }
+  }
+}

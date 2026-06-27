@@ -53,7 +53,7 @@ export class Component extends HTMLElement {
    * @returns {ReturnType<typeof document.querySelector>}
    */
   $(q) {
-    // @ts-expect-error
+    // @ts-expect-error - querySelector
     return this._sDOM?.querySelector(q);
   }
 
@@ -63,7 +63,7 @@ export class Component extends HTMLElement {
    * @returns {ReturnType<typeof document.querySelectorAll>}
    */
   $$(q) {
-    // @ts-expect-error
+    // @ts-expect-error - querySelectorAll
     return this._sDOM?.querySelectorAll(q);
   }
 
@@ -113,7 +113,8 @@ export class Component extends HTMLElement {
    */
   async fetchHTMLAsDocFrag() {
     if (!this.htmlPath) {
-      throw new Error("Fetch failed, no html path provided.");
+      console.debug("Fetch failed, no html path provided.");
+      return new DocumentFragment();
     }
 
     if (HTMLCache.has(this.htmlPath)) {
@@ -141,7 +142,7 @@ export class Component extends HTMLElement {
 
   async fetchCSSAsStyleSheet() {
     if (!this.cssPath) {
-      throw new Error("Fetch failed, no css path provided.");
+      return null;
     }
 
     if (CSSCache.has(this.cssPath)) {
