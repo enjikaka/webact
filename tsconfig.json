@@ -7,8 +7,7 @@
     "rootDir": "./src",
     "outDir": "pkg",
     "lib": ["ES2023", "DOM"],
-    "target": "es2023",
-    "isolatedDeclarations": true
+    "target": "es2023"
   },
   "include": ["src/*"]
 }

@@ -8,6 +8,9 @@ import {
 import { CSSCache, HTMLCache } from "./state.js";
 
 export class Component extends HTMLElement {
+  /**
+   * @param {string} componentPath 
+   */
   constructor(componentPath) {
     super();
 
@@ -44,8 +47,24 @@ export class Component extends HTMLElement {
     return;
   }
 
+  /**
+   * 
+   * @param {string} q 
+   * @returns {ReturnType<typeof document.querySelector>}
+   */
   $(q) {
-    return this._sDOM.querySelector(q);
+    // @ts-expect-error
+    return this._sDOM?.querySelector(q);
+  }
+
+  /**
+   * 
+   * @param {string} q 
+   * @returns {ReturnType<typeof document.querySelectorAll>}
+   */
+  $$(q) {
+    // @ts-expect-error
+    return this._sDOM?.querySelectorAll(q);
   }
 
   get cssPath() {
@@ -70,11 +89,17 @@ export class Component extends HTMLElement {
     this._events?.offAll();
     const sheet = await this.fetchCSSAsStyleSheet();
 
-    this._sDOM.adoptedStyleSheets = [sheet];
+    if (this._sDOM && sheet) {
+      this._sDOM.adoptedStyleSheets = [sheet];
+    }
 
     const htmlText = this.render(this.props);
 
-    return stringToElements(htmlText);
+    if (htmlText) {
+      return stringToElements(htmlText);
+    }
+
+    return new DocumentFragment();
   }
 
   _deRender() {
@@ -87,15 +112,19 @@ export class Component extends HTMLElement {
    * @returns {Promise<Node>}
    */
   async fetchHTMLAsDocFrag() {
+    if (!this.htmlPath) {
+      throw new Error("Fetch failed, no html path provided.");
+    }
+
     if (HTMLCache.has(this.htmlPath)) {
-      return HTMLCache.get(this.htmlPath).content.cloneNode(true);
+      return /** @type {HTMLTemplateElement} */ (HTMLCache.get(this.htmlPath)).content.cloneNode(true);
     }
 
     const response = await fetch(this.htmlPath);
 
     if (
       response.ok &&
-      response.headers.get("content-type").includes("text/html")
+      response.headers.get("content-type")?.includes("text/html")
     ) {
       const text = await response.text();
       const template = document.createElement("template");
@@ -111,6 +140,10 @@ export class Component extends HTMLElement {
   }
 
   async fetchCSSAsStyleSheet() {
+    if (!this.cssPath) {
+      throw new Error("Fetch failed, no css path provided.");
+    }
+
     if (CSSCache.has(this.cssPath)) {
       return CSSCache.get(this.cssPath);
     }
@@ -120,7 +153,7 @@ export class Component extends HTMLElement {
 
     if (
       response.ok &&
-      response.headers.get("content-type").includes("text/css")
+      response.headers.get("content-type")?.includes("text/css")
     ) {
       const text = await response.text();
 
@@ -145,7 +178,9 @@ export class Component extends HTMLElement {
       this.fetchCSSAsStyleSheet(),
     ]);
 
-    this._sDOM.adoptedStyleSheets = [sheet];
+    if (this._sDOM && sheet) {
+      this._sDOM.adoptedStyleSheets = [sheet];
+    }
 
     return docFrag.cloneNode(true);
   }
@@ -161,11 +196,11 @@ export class Component extends HTMLElement {
    * @returns
    */
   on(type, selector, fn, options) {
-    return this._events.on(type, selector, fn, options);
+    return this._events?.on(type, selector, fn, options);
   }
 
   offAll() {
-    this._events.offAll();
+    this._events?.offAll();
   }
 
   async connectedCallback() {
@@ -184,8 +219,10 @@ export class Component extends HTMLElement {
       );
     }
 
-    this._sDOM.innerHTML = "";
-    this._sDOM.appendChild(content);
+    if (content) {
+      this._sDOM.innerHTML = "";
+      this._sDOM.appendChild(content);
+    }
 
     // Use single RAF for componentDidMount to avoid unnecessary frame delays
     if (this.componentDidMount) {
@@ -209,7 +246,7 @@ export class Component extends HTMLElement {
  */
 export default function registerComponent(
   classInstace,
-  { name } = { name: undefined },
+  { name } = { name: null },
 ) {
   const componentName = "is" in classInstace
     ? classInstace.is

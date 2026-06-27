@@ -107,6 +107,12 @@ export class EventHub {
     this.byType = new Map(); // type -> array of {selector, fn, options}
   }
 
+  /**
+   * @param {string} type
+   * @param {string} selector
+   * @param {EventListener} fn
+   * @param {EventListenerOptions} [options]
+   */
   on(type, selector, fn, options) {
     if (!this.byType.has(type)) {
       this.byType.set(type, []);
@@ -123,13 +129,14 @@ export class EventHub {
     this.byType.clear();
   }
 
+  /** @param {Event} event */
   handleEvent(event) {
     const list = this.byType.get(event.type);
     if (!list) return;
 
     // Event delegation: walk from target upwards.
     for (const { selector, fn } of list) {
-      const matched = event.target?.closest?.(selector);
+      const matched = event.target instanceof Element ? event.target.closest(selector) : null;
       if (
         matched &&
         (this.root === matched.getRootNode?.() || this.root.contains(matched))
