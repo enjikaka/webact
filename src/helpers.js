@@ -23,7 +23,7 @@ export function camelToKebabCase(str) {
  * with the keys camelCased.
  *
  * @param {NamedNodeMap} attributes Element.attributes
- * @returns {object} Object with camelCased keys
+ * @returns {Record<string, string>} Object with camelCased keys
  */
 export function attributesToObject(attributes) {
   return attributes
@@ -54,7 +54,7 @@ export function stringToElements(string) {
  */
 export function modernCSS(strings, ...rest) {
   const sheet = new CSSStyleSheet();
-  sheet.replace(String.raw(strings, ...rest));
+  sheet.replaceSync(String.raw(strings, ...rest));
   return sheet;
 }
 
@@ -69,23 +69,25 @@ export function oldCSS(strings, ...rest) {
   return style;
 }
 
+const supportsConstructableStylesheets = (() => {
+  try {
+    // eslint-disable-next-line no-new
+    new CSSStyleSheet();
+    return true;
+  } catch (_e) {
+    return false;
+  }
+})();
+
 /**
  * @param {TemplateStringsArray} strings
  * @param {any[]} rest
  * @returns {CSSStyleSheet | HTMLStyleElement}
  */
 export function css(strings, ...rest) {
-  let modern = false;
-
-  try {
-    // eslint-disable-next-line no-new
-    new CSSStyleSheet();
-    modern = true;
-  } catch (_e) {
-    modern = false;
-  }
-
-  return modern ? modernCSS(strings, ...rest) : oldCSS(strings, ...rest);
+  return supportsConstructableStylesheets
+    ? modernCSS(strings, ...rest)
+    : oldCSS(strings, ...rest);
 }
 
 /**

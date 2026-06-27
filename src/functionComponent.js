@@ -2,19 +2,23 @@ import {
   attributesToObject,
   camelToKebabCase,
   EventHub,
-  html,
   modernCSS,
 } from "./helpers.js";
 
 import { CSSCache, HTMLCache } from "./state.js";
 
+/** @type {string[]} */
 const componentsByUs = [];
 
+/** @type {Map<string, Function>} */
 const HMROverride = new Map();
 
+/** @type {Map<string, Promise<void>>} */
 const htmlFetches = new Map();
+/** @type {Map<string, Promise<void>>} */
 const cssFetches = new Map();
 
+/** @type {Map<string, string>} */
 const lastPropChange = new Map();
 
 /** @typedef FunctionComponentOptions
@@ -43,15 +47,23 @@ function _generateFunctionComponen(
       this._componentPath = metaUrl;
       this._customThis = null;
       this._cacheKeyId = Math.random().toString(36).substr(2, 9);
+      /**
+       * @type {Record<string, string> | null}
+       */
+      this._cachedProps = null;
 
       this._hasRendered = false;
 
       document.addEventListener("esm-hmr:webact-function-component", () => {
+        if (!kebabName) return;
+
         this._hmrUpdate = true;
+
         functionalComponent = HMROverride.has(kebabName)
-          ? HMROverride.get(kebabName)
+          ? (/** @type {Function} */ (HMROverride.get(kebabName)))
           : functionalComponent;
-        this._render(this._props);
+
+        this._render(this._props ?? {});
       });
     }
 
@@ -59,24 +71,28 @@ function _generateFunctionComponen(
       if (!HTMLCache.has(this.htmlPath) || this._hmrUpdate) {
         const templateElement = document.createElement("template");
 
-        templateElement.content.appendChild(node);
+        if (node) {
+          templateElement.content.appendChild(node);
+        }
 
         HTMLCache.set(this.htmlPath, templateElement);
       }
     }
 
     /**
-     * @returns {Node}
+     * @returns {Node | null}
      */
     get _html() {
       return HTMLCache.has(this.htmlPath)
-        ? HTMLCache.get(this.htmlPath).content.cloneNode(true)
+        ? (/** @type {HTMLTemplateElement} */ (HTMLCache.get(this.htmlPath))).content.cloneNode(true)
         : null;
     }
 
     set _css(cssStyleSheet) {
       if (!CSSCache.has(this.htmlPath) || this._hmrUpdate) {
-        CSSCache.set(this.htmlPath, cssStyleSheet);
+        if (cssStyleSheet) {
+          CSSCache.set(this.htmlPath, cssStyleSheet);
+        }
       }
     }
 
@@ -113,8 +129,10 @@ function _generateFunctionComponen(
       requestAnimationFrame(() => {
         // Apply CSS stylesheets
         if (CSSCache.has(this.cssPath)) {
-          if ("adoptedStyleSheets" in this._sDOM) {
-            this._sDOM.adoptedStyleSheets = [CSSCache.get(this.cssPath)];
+          if (this._sDOM && "adoptedStyleSheets" in this._sDOM) {
+            if (CSSCache.has(this.cssPath)) {
+              this._sDOM.adoptedStyleSheets = [/** @type {CSSStyleSheet} */ (CSSCache.get(this.cssPath))];
+            }
           }
 
           /* TODO: Make it work with old style element again maybe?
@@ -127,18 +145,20 @@ function _generateFunctionComponen(
         }
 
         // Apply HTML template
-        if (HTMLCache.has(this.htmlPath)) {
+        if (this._sDOM && HTMLCache.has(this.htmlPath)) {
           this._sDOM.appendChild(
-            HTMLCache.get(this.htmlPath).content.cloneNode(true),
+            (/** @type {HTMLTemplateElement} */ (HTMLCache.get(this.htmlPath))).content.cloneNode(true),
           );
         } else if (document.location.href.includes("localhost")) {
           console.warn(`<${kebabName}>: Missing HTML. Will render without it.`);
         }
 
-        // Execute post-render callback in next frame to ensure DOM is fully updated
         if (this._postRender instanceof Function) {
-          requestAnimationFrame(() => {
-            this._postRender();
+          queueMicrotask(() => {
+            if (this._postRender) {
+              this._postRender();
+            }
+            
             this._hmrUpdate = false;
             this._hasRendered = true;
           });
@@ -147,7 +167,10 @@ function _generateFunctionComponen(
     }
 
     get _props() {
-      return attributesToObject(this.attributes);
+      if (!this._cachedProps) {
+        this._cachedProps = attributesToObject(this.attributes);
+      }
+      return this._cachedProps;
     }
 
     get customThis() {
@@ -158,7 +181,7 @@ function _generateFunctionComponen(
       this._customThis = {
         /**
          * @param {TemplateStringsArray} strings
-         * @returns {Node}
+         * @returns {Node | null}
          */
         html: (strings, ...rest) => {
           if (
@@ -167,7 +190,7 @@ function _generateFunctionComponen(
             // HMR is an expection though.
             this._hmrUpdate === false
           ) {
-            return;
+            return null;
           }
 
           const template = document.createElement("template");
@@ -175,11 +198,11 @@ function _generateFunctionComponen(
 
           HTMLCache.set(this.htmlPath, template);
 
-          return HTMLCache.get(this.htmlPath).content.cloneNode(true);
+          return template.content.cloneNode(true);
         },
         /**
          * @param {TemplateStringsArray} strings
-         * @returns {CSSStyleSheet}
+         * @returns {CSSStyleSheet | null}
          */
         css: (strings, ...rest) => {
           // A stylesheet has already been provided. Only allowed once. Ignore subsequent attempts.
@@ -189,75 +212,80 @@ function _generateFunctionComponen(
             // HMR is an expection though.
             this._hmrUpdate === false
           ) {
-            return;
+            return null;
           }
 
-          CSSCache.set(this.cssPath, modernCSS(strings, ...rest));
+          const cssStyleSheet = modernCSS(strings, ...rest);
 
-          return CSSCache.get(this.cssPath);
+          CSSCache.set(this.cssPath, cssStyleSheet);
+
+          return cssStyleSheet;
         },
         /**
-         * @param {string | URL} path
+         * @param {string | URL} [path]
          * @returns {Promise<void>}
          */
         useHTML: (path) => {
+          const resolvedPath = path instanceof URL ? path.toString() : (path || (this._componentPath ? this.htmlPath : null));
+
+          if (!resolvedPath) {
+            return Promise.resolve();
+          }
+
+          if (!this._hmrUpdate && HTMLCache.has(resolvedPath)) {
+            return Promise.resolve();
+          }
+
           // If another instance of this component is fetching HTML, then don't fetch again. Wait for same HTML file.
-          if (htmlFetches.has(kebabName)) {
-            return htmlFetches.get(kebabName);
+          if (kebabName && htmlFetches.has(kebabName)) {
+            return /** @type {Promise<void>} */ (htmlFetches.get(kebabName));
           }
 
-          path = path || (this._componentPath ? this.htmlPath : null);
-
-          if (!path) {
-            return;
-          }
-
-          if (path instanceof URL) {
-            path = path.toString();
-          }
+          path = resolvedPath;
 
           const htmlFetching = async () => {
             try {
               const response = await fetch(path);
               const text = await response.text();
-
-              // eslint-disable-next-line no-unused-expressions
-              this.customThis.html`${text}`;
-
               const template = document.createElement("template");
               template.innerHTML = text;
-
               HTMLCache.set(this.htmlPath, template);
             } finally {
-              htmlFetches.delete(kebabName);
+              if (kebabName) {
+                htmlFetches.delete(kebabName);
+              }
             }
           };
 
           const promise = htmlFetching();
 
-          htmlFetches.set(kebabName, promise);
+          if (kebabName) {
+            htmlFetches.set(kebabName, promise);
+          }
 
           return promise;
         },
         /**
-         * @param {string | URL} path
+         * @param {string | URL} [path]
          * @returns {Promise<void>}
          */
         useCSS: (path) => {
+          const resolvedPath = path instanceof URL ? path.toString() : (path || (this._componentPath ? this.cssPath : null));
+
+          if (!resolvedPath) {
+            return Promise.resolve();
+          }
+
+          if (!this._hmrUpdate && CSSCache.has(resolvedPath)) {
+            return Promise.resolve();
+          }
+
           // If another instance of this component is fetching CSS, then don't fetch again. Wait for same CSS file.
-          if (cssFetches.has(kebabName)) {
-            return cssFetches.get(kebabName);
+          if (kebabName && cssFetches.has(kebabName)) {
+            return /** @type {Promise<void>} */ (cssFetches.get(kebabName));
           }
 
-          path = path || (this._componentPath ? this.cssPath : null);
-
-          if (!path) {
-            return;
-          }
-
-          if (path instanceof URL) {
-            path = path.toString();
-          }
+          path = resolvedPath;
 
           const cssFetching = async () => {
             try {
@@ -266,16 +294,28 @@ function _generateFunctionComponen(
 
               CSSCache.set(this.cssPath, modernCSS`${text}`);
             } finally {
-              cssFetches.delete(kebabName);
+              if (kebabName) {
+                cssFetches.delete(kebabName);
+              }
             }
           };
 
           const promise = cssFetching();
 
-          cssFetches.set(kebabName, promise);
+          if (kebabName) {
+            cssFetches.set(kebabName, promise);
+          }
 
           return promise;
         },
+        /**
+         * Fetch HTML and CSS in parallel.
+         * @returns {Promise<void>}
+         */
+        useAssets: () => Promise.all([
+          this.customThis.useCSS(),
+          this.customThis.useHTML(),
+        ]).then(() => {}),
         /**
          * @param {Function} method
          */
@@ -306,12 +346,12 @@ function _generateFunctionComponen(
             return this._sDOM;
           }
 
-          return this._sDOM.querySelector(selector);
+          return this._sDOM?.querySelector(selector);
         },
         /**
          * @param {string} selector
          */
-        $$: (selector) => this._sDOM.querySelectorAll(selector),
+        $$: (selector) => this._sDOM?.querySelectorAll(selector),
         /**
          * @param {string} type
          * @param {string} selector
@@ -319,14 +359,16 @@ function _generateFunctionComponen(
          * @param {EventListenerOptions} options
          */
         on: (type, selector, fn, options) =>
-          this._events.on(type, selector, fn, options),
-        offAll: () => this._events.offAll(),
+          this._events?.on(type, selector, fn, options),
+        offAll: () => this._events?.offAll(),
       };
 
       return this._customThis;
     }
 
     async attributeChangedCallback() {
+      this._cachedProps = null;
+
       if (this._rendering instanceof Promise) {
         await this._rendering;
       }
@@ -338,14 +380,19 @@ function _generateFunctionComponen(
         );
 
         // Avoid emitting propChanges when no props change, even if the attributeChangedCallback is run.
-        if (lastPropChange.get(kebabName) === serializedChange) {
+        if (kebabName && lastPropChange.get(kebabName) === serializedChange) {
           return;
         }
 
         // Use RAF only for the actual prop change handling
         requestAnimationFrame(() => {
-          this._propsChanged(attributesToObject(this.attributes));
-          lastPropChange.set(kebabName, serializedChange);
+          if (this._propsChanged) {
+            this._propsChanged(attributesToObject(this.attributes));
+          }
+
+          if (kebabName) {
+            lastPropChange.set(kebabName, serializedChange);
+          }
         });
       } else if (document.location.href.includes("localhost")) {
         console.error(`
