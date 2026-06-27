@@ -206,7 +206,7 @@ function _generateFunctionComponen(
             return htmlFetches.get(kebabName);
           }
 
-          path = path || this.htmlPath;
+          path = path || (this._componentPath ? this.htmlPath : null);
 
           if (!path) {
             return;
@@ -217,18 +217,20 @@ function _generateFunctionComponen(
           }
 
           const htmlFetching = async () => {
-            const response = await fetch(path);
-            const text = await response.text();
+            try {
+              const response = await fetch(path);
+              const text = await response.text();
 
-            // eslint-disable-next-line no-unused-expressions
-            this.customThis.html`${text}`;
+              // eslint-disable-next-line no-unused-expressions
+              this.customThis.html`${text}`;
 
-            htmlFetches.delete(kebabName);
+              const template = document.createElement("template");
+              template.innerHTML = text;
 
-            const template = document.createElement("template");
-            template.innerHTML = text;
-
-            HTMLCache.set(this.htmlPath, template);
+              HTMLCache.set(this.htmlPath, template);
+            } finally {
+              htmlFetches.delete(kebabName);
+            }
           };
 
           const promise = htmlFetching();
@@ -247,7 +249,7 @@ function _generateFunctionComponen(
             return cssFetches.get(kebabName);
           }
 
-          path = path || this.cssPath;
+          path = path || (this._componentPath ? this.cssPath : null);
 
           if (!path) {
             return;
@@ -258,12 +260,14 @@ function _generateFunctionComponen(
           }
 
           const cssFetching = async () => {
-            const response = await fetch(path);
-            const text = await response.text();
+            try {
+              const response = await fetch(path);
+              const text = await response.text();
 
-            CSSCache.set(this.cssPath, modernCSS`${text}`);
-
-            cssFetches.delete(kebabName);
+              CSSCache.set(this.cssPath, modernCSS`${text}`);
+            } finally {
+              cssFetches.delete(kebabName);
+            }
           };
 
           const promise = cssFetching();
