@@ -181,6 +181,7 @@ function _generateFunctionComponen(
       this._customThis = {
         /**
          * @param {TemplateStringsArray} strings
+         * @param {...any} rest
          * @returns {Node | null}
          */
         html: (strings, ...rest) => {
@@ -202,6 +203,7 @@ function _generateFunctionComponen(
         },
         /**
          * @param {TemplateStringsArray} strings
+         * @param {...any} rest
          * @returns {CSSStyleSheet | null}
          */
         css: (strings, ...rest) => {
