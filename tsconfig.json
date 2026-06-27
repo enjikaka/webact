@@ -4,9 +4,11 @@
     "checkJs": true,
     "declaration": true,
     "emitDeclarationOnly": true,
+    "rootDir": "./src",
     "outDir": "pkg",
     "lib": ["ES2023", "DOM"],
-    "target": "es2023"
+    "target": "es2023",
+    "isolatedDeclarations": true
   },
   "include": ["src/*"]
 }
