@@ -21,6 +21,22 @@ const cssFetches = new Map();
 /** @type {Map<string, string>} */
 const lastPropChange = new Map();
 
+/**
+ * @typedef {Object} FunctionComponentThis
+ * @prop {(strings: TemplateStringsArray, ...rest: any[]) => Node | null} html
+ * @prop {(strings: TemplateStringsArray, ...rest: any[]) => CSSStyleSheet | null} css
+ * @prop {(path?: string | URL) => Promise<void>} useHTML
+ * @prop {(path?: string | URL) => Promise<void>} useCSS
+ * @prop {() => Promise<void>} useAssets
+ * @prop {(method: () => void) => void} postRender
+ * @prop {(method: () => void) => void} deRender
+ * @prop {(method: (props: Record<string, string>) => void) => void} propsChanged
+ * @prop {(selector?: string) => HTMLElement | ShadowRoot | Element | null} $
+ * @prop {(selector: string) => NodeListOf<Element> | undefined} $$
+ * @prop {(type: string, selector: string, fn: EventListener, options?: EventListenerOptions) => void} on
+ * @prop {() => void} offAll
+ */
+
 /** @typedef FunctionComponentOptions
  * @prop {string} [metaUrl]
  * @prop {string[]} [observedAttributes]
